@@ -1,9 +1,13 @@
 ---
 title: "Using MDX"
+titleZh: "使用 MDX"
 description: "Lorem ipsum dolor sit amet"
+descriptionZh: "在 Astro 中使用 MDX 格式撰寫文章"
 pubDate: "Jun 01 2024"
 heroImage: "/blog-placeholder-5.jpg"
 ---
+
+<div data-en>
 
 This theme comes with the [@astrojs/mdx](https://docs.astro.build/en/guides/integrations-guide/mdx/) integration installed and configured in your `astro.config.mjs` config file. If you prefer not to use MDX, you can disable support by removing the integration from your config file.
 
@@ -18,14 +22,47 @@ If you have existing content authored in MDX, this integration will hopefully ma
 Here is how you import and use a UI component inside of MDX.  
 When you open this page in the browser, you should see the clickable button below.
 
+</div>
+
+<div data-zh>
+
+這個主題已在 `astro.config.mjs` 中安裝並設定好 [@astrojs/mdx](https://docs.astro.build/en/guides/integrations-guide/mdx/) 整合。如果您不需要使用 MDX，可以從設定檔中移除此整合。
+
+## 為什麼使用 MDX？
+
+MDX 是 Markdown 的進階版本，支援嵌入 JavaScript 與 JSX 語法。這讓您能夠在 Markdown 內容中[混合使用 JavaScript 和 UI 元件](https://docs.astro.build/en/guides/markdown-content/#mdx-features)，例如互動式圖表或提示框。
+
+如果您已有以 MDX 格式撰寫的內容，此整合可讓您輕鬆遷移至 Astro。
+
+## 範例
+
+以下示範如何在 MDX 中匯入並使用 UI 元件。  
+在瀏覽器中開啟此頁面後，您應該會看到下方可點擊的按鈕。
+
+</div>
+
 import HeaderLink from "../../components/HeaderLink.astro";
 
 <HeaderLink href="#" onclick="alert('clicked!')">
 	Embedded component in MDX
 </HeaderLink>
 
+<div data-en>
+
 ## More Links
 
 - [MDX Syntax Documentation](https://mdxjs.com/docs/what-is-mdx)
 - [Astro Usage Documentation](https://docs.astro.build/en/guides/markdown-content/#markdown-and-mdx-pages)
 - **Note:** [Client Directives](https://docs.astro.build/en/reference/directives-reference/#client-directives) are still required to create interactive components. Otherwise, all components in your MDX will render as static HTML (no JavaScript) by default.
+
+</div>
+
+<div data-zh>
+
+## 更多資源
+
+- [MDX 語法文件](https://mdxjs.com/docs/what-is-mdx)
+- [Astro 使用文件](https://docs.astro.build/en/guides/markdown-content/#markdown-and-mdx-pages)
+- **注意：** 若要建立互動式元件，仍需使用 [Client Directives](https://docs.astro.build/en/reference/directives-reference/#client-directives)。否則，MDX 中的所有元件預設會渲染為靜態 HTML（不含 JavaScript）。
+
+</div>

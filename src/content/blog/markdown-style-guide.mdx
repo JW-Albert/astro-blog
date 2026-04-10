@@ -1,0 +1,428 @@
+---
+title: "Markdown Style Guide"
+titleZh: "Markdown 樣式指南"
+description: "Here is a sample of some basic Markdown syntax that can be used when writing Markdown content in Astro."
+descriptionZh: "Astro 中撰寫 Markdown 內容時可使用的基本語法範例。"
+pubDate: "Jun 19 2024"
+heroImage: "/blog-placeholder-1.jpg"
+---
+
+<div data-en>
+
+Here is a sample of some basic Markdown syntax that can be used when writing Markdown content in Astro.
+
+## Headings
+
+The following HTML `<h1>`—`<h6>` elements represent six levels of section headings. `<h1>` is the highest section level while `<h6>` is the lowest.
+
+</div>
+
+<div data-zh>
+
+以下是在 Astro 中撰寫 Markdown 內容時可使用的基本語法範例。
+
+## 標題
+
+HTML 的 `<h1>`—`<h6>` 元素代表六個層級的標題，`<h1>` 為最高層級，`<h6>` 為最低層級。
+
+</div>
+
+# H1
+## H2
+### H3
+#### H4
+##### H5
+###### H6
+
+---
+
+<div data-en>
+
+## Paragraph
+
+Xerum, quo qui aut unt expliquam qui dolut labo. Aque venitatiusda cum, voluptionse latur sitiae dolessi aut parist aut dollo enim qui voluptate ma dolestendit peritin re plis aut quas inctum laceat est volestemque commosa as cus endigna tectur, offic to cor sequas etum rerum idem sintibus eiur? Quianimin porecus evelectur, cum que nis nust voloribus ratem aut omnimi, sitatur? Quiatem.
+
+Itatur? Quiatae cullecum rem ent aut odis in re eossequodi nonsequ idebis ne sapicia is sinveli squiatum, core et que aut hariosam ex eat.
+
+## Images
+
+### Syntax
+
+</div>
+
+<div data-zh>
+
+## 段落
+
+段落文字直接撰寫即可，Markdown 會自動將連續文字渲染為段落。段落之間以一個空行分隔。
+
+範例段落一：這裡是一段示範文字，展示一般段落的呈現方式。
+
+範例段落二：這是第二段文字，與上方段落之間有空行分隔。
+
+## 圖片
+
+### 語法
+
+</div>
+
+```markdown
+![Alt text](./full/or/relative/path/of/image)
+```
+
+<div data-en>
+
+### Output
+
+</div>
+
+<div data-zh>
+
+### 輸出結果
+
+</div>
+
+![blog placeholder](/blog-placeholder-about.jpg)
+
+---
+
+<div data-en>
+
+## Blockquotes
+
+The blockquote element represents content that is quoted from another source, optionally with a citation which must be within a `footer` or `cite` element.
+
+### Blockquote without attribution
+
+#### Syntax
+
+</div>
+
+<div data-zh>
+
+## 引用區塊
+
+引用區塊用來標示來自其他來源的內容，可選擇性地加入來源出處。
+
+### 不含出處的引用
+
+#### 語法
+
+</div>
+
+```markdown
+> Tiam, ad mint andaepu dandae nostion secatur sequo quae.  
+> **Note** that you can use _Markdown syntax_ within a blockquote.
+```
+
+<div data-en>
+
+#### Output
+
+</div>
+
+<div data-zh>
+
+#### 輸出結果
+
+</div>
+
+> Tiam, ad mint andaepu dandae nostion secatur sequo quae.  
+> **Note** that you can use _Markdown syntax_ within a blockquote.
+
+<div data-en>
+
+### Blockquote with attribution
+
+#### Syntax
+
+</div>
+
+<div data-zh>
+
+### 含出處的引用
+
+#### 語法
+
+</div>
+
+```markdown
+> Don't communicate by sharing memory, share memory by communicating.<br/>
+> — <cite>Rob Pike[^1]</cite>
+```
+
+<div data-en>
+
+#### Output
+
+</div>
+
+<div data-zh>
+
+#### 輸出結果
+
+</div>
+
+> Don't communicate by sharing memory, share memory by communicating.<br/>
+> — <cite>Rob Pike[^1]</cite>
+
+[^1]: The above quote is excerpted from Rob Pike's [talk](https://www.youtube.com/watch?v=PAAkCSZUG1c) during Gopherfest, November 18, 2015.
+
+---
+
+<div data-en>
+
+## Tables
+
+### Syntax
+
+</div>
+
+<div data-zh>
+
+## 表格
+
+### 語法
+
+</div>
+
+```markdown
+| Italics   | Bold     | Code   |
+| --------- | -------- | ------ |
+| _italics_ | **bold** | `code` |
+```
+
+<div data-en>
+
+### Output
+
+</div>
+
+<div data-zh>
+
+### 輸出結果
+
+</div>
+
+| Italics   | Bold     | Code   |
+| --------- | -------- | ------ |
+| _italics_ | **bold** | `code` |
+
+---
+
+<div data-en>
+
+## Code Blocks
+
+### Syntax
+
+Use 3 backticks on a new line, write your snippet, then close with 3 backticks. Add the language name after the opening backticks to enable syntax highlighting (e.g. `html`, `javascript`, `css`, `typescript`).
+
+### Output
+
+</div>
+
+<div data-zh>
+
+## 程式碼區塊
+
+### 語法
+
+在新的一行使用三個反引號開始，撰寫程式碼後，再用三個反引號結束。在開頭的反引號後加上語言名稱可啟用語法高亮（如 `html`、`javascript`、`css`、`typescript`）。
+
+### 輸出結果
+
+</div>
+
+```html
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Example HTML5 Document</title>
+	</head>
+	<body>
+		<p>Test</p>
+	</body>
+</html>
+```
+
+---
+
+<div data-en>
+
+## List Types
+
+### Ordered List
+
+#### Syntax
+
+</div>
+
+<div data-zh>
+
+## 清單類型
+
+### 有序清單
+
+#### 語法
+
+</div>
+
+```markdown
+1. First item
+2. Second item
+3. Third item
+```
+
+<div data-en>
+
+#### Output
+
+</div>
+
+<div data-zh>
+
+#### 輸出結果
+
+</div>
+
+1. First item
+2. Second item
+3. Third item
+
+<div data-en>
+
+### Unordered List
+
+#### Syntax
+
+</div>
+
+<div data-zh>
+
+### 無序清單
+
+#### 語法
+
+</div>
+
+```markdown
+- List item
+- Another item
+- And another item
+```
+
+<div data-en>
+
+#### Output
+
+</div>
+
+<div data-zh>
+
+#### 輸出結果
+
+</div>
+
+- List item
+- Another item
+- And another item
+
+<div data-en>
+
+### Nested list
+
+#### Syntax
+
+</div>
+
+<div data-zh>
+
+### 巢狀清單
+
+#### 語法
+
+</div>
+
+```markdown
+- Fruit
+  - Apple
+  - Orange
+  - Banana
+- Dairy
+  - Milk
+  - Cheese
+```
+
+<div data-en>
+
+#### Output
+
+</div>
+
+<div data-zh>
+
+#### 輸出結果
+
+</div>
+
+- Fruit
+  - Apple
+  - Orange
+  - Banana
+- Dairy
+  - Milk
+  - Cheese
+
+---
+
+<div data-en>
+
+## Other Elements — abbr, sub, sup, kbd, mark
+
+### Syntax
+
+</div>
+
+<div data-zh>
+
+## 其他元素 — abbr、sub、sup、kbd、mark
+
+### 語法
+
+</div>
+
+```markdown
+<abbr title="Graphics Interchange Format">GIF</abbr> is a bitmap image format.
+
+H<sub>2</sub>O
+
+X<sup>n</sup> + Y<sup>n</sup> = Z<sup>n</sup>
+
+Press <kbd>CTRL</kbd> + <kbd>ALT</kbd> + <kbd>Delete</kbd> to end the session.
+
+Most <mark>salamanders</mark> are nocturnal, and hunt for insects, worms, and other small creatures.
+```
+
+<div data-en>
+
+### Output
+
+</div>
+
+<div data-zh>
+
+### 輸出結果
+
+</div>
+
+<abbr title="Graphics Interchange Format">GIF</abbr> is a bitmap image format.
+
+H<sub>2</sub>O
+
+X<sup>n</sup> + Y<sup>n</sup> = Z<sup>n</sup>
+
+Press <kbd>CTRL</kbd> + <kbd>ALT</kbd> + <kbd>Delete</kbd> to end the session.
+
+Most <mark>salamanders</mark> are nocturnal, and hunt for insects, worms, and other small creatures.
