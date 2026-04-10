@@ -1,5 +1,6 @@
 ---
 import HeaderLink from './HeaderLink.astro';
+import LangToggle from './LangToggle.astro';
 import { SITE_TITLE } from '../consts';
 ---
 
@@ -7,11 +8,13 @@ import { SITE_TITLE } from '../consts';
 	<nav>
 		<h2><a href="/">{SITE_TITLE}</a></h2>
 		<div class="internal-links">
-			<HeaderLink href="/">Home</HeaderLink>
-			<HeaderLink href="/blog">Blog</HeaderLink>
-			<HeaderLink href="/about">About</HeaderLink>
+			<HeaderLink href="/"><span data-en>Home</span><span data-zh>首頁</span></HeaderLink>
+			<HeaderLink href="/blog"><span data-en>Blog</span><span data-zh>文章</span></HeaderLink>
+			<HeaderLink href="/about"><span data-en>About</span><span data-zh>關於</span></HeaderLink>
 		</div>
-		<div class="social-links">
+		<div class="right-controls">
+			<LangToggle />
+			<div class="social-links">
 			<a href="https://m.webtoo.ls/@astro" target="_blank">
 				<span class="sr-only">Follow Astro on Mastodon</span>
 				<svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32"
@@ -39,6 +42,7 @@ import { SITE_TITLE } from '../consts';
 					></path></svg
 				>
 			</a>
+		</div>
 		</div>
 	</nav>
 </header>
@@ -72,6 +76,11 @@ import { SITE_TITLE } from '../consts';
 	nav a.active {
 		text-decoration: none;
 		border-bottom-color: var(--accent);
+	}
+	.right-controls {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
 	}
 	.social-links,
 	.social-links a {

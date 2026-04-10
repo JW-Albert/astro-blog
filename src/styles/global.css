@@ -136,6 +136,10 @@ hr {
 	}
 }
 
+/* Language toggle: hide content that doesn't match the current lang */
+html[lang="zh-TW"] [data-en] { display: none; }
+html[lang="en"] [data-zh] { display: none; }
+
 .sr-only {
 	border: 0;
 	padding: 0;
