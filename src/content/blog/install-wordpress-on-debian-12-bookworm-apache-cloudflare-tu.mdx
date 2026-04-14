@@ -1,0 +1,371 @@
+---
+title: "Install WordPress on Debian 12 (Bookworm) + Apache + Cloudflare Tunnel"
+titleZh: "在 Debian 12 (Bookworm) 上安裝 WordPress + Apache + Cloudflare Tunnel"
+description: "A complete guide to installing WordPress on Debian 12 with Apache, SSL, Cloudflare Tunnel, and proper log configuration."
+descriptionZh: "在 Debian 12 上完整安裝 WordPress 的教學，涵蓋 Apache、SSL 憑證、Cloudflare Tunnel 及日誌設定。"
+pubDate: "Apr 07 2025"
+---
+
+<div data-en>
+
+## Prerequisites
+
+- Debian 12 (Bookworm) installed with sudo privileges.
+- A DNS A Record configured to point to the server IP (if you intend to expose it publicly).
+- If using Cloudflare Tunnel / Zero Trust, you do not need to open ports 80/443 externally; otherwise, ensure the firewall allows HTTP/HTTPS traffic.
+
+## SQL Server Settings
+
+Please follow [this guide](https://www.jw-albert.tw/mariadb-install-on-debian-12/) to install MariaDB on Debian 12.
+
+```bash
+mysql -u ACCOUNT -p
+```
+
+```sql
+CREATE DATABASE wordpress DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'wordpress'@'localhost' IDENTIFIED BY 'wordpress';
+GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+## Download WordPress
+
+```bash
+cd /var/www/html
+wget https://wordpress.org/latest.tar.gz
+tar -xzf latest.tar.gz
+rm latest.tar.gz
+```
+
+## Setting Permissions
+
+```bash
+sudo chown -R www-data:www-data /var/www/html/wordpress
+sudo chmod -R 755 /var/www/html/wordpress
+```
+
+## Apache2 Settings
+
+Please follow [this guide](https://www.jw-albert.tw/apache2-install-on-debian-12/) to install Apache2 on Debian 12.
+
+```bash
+sudo nano /etc/apache2/sites-available/wordpress.conf
+```
+
+```apache
+<VirtualHost *:80>
+        ServerName SERVER_NAME
+
+        ServerAdmin ADMIN_MAIL_ADDRESS
+        DocumentRoot /var/www/html/wordpress
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+        <Directory /var/www/html/wordpress>
+                AllowOverride All
+                Require all granted
+        </Directory>
+</VirtualHost>
+```
+
+> Make sure to replace the parameters with your actual values.
+
+```bash
+sudo a2ensite wordpress.conf
+sudo a2enmod rewrite
+sudo systemctl reload apache2
+```
+
+## Firewall Security Settings
+
+To ensure proper access, make sure your network firewall allows inbound traffic on ports **80/tcp** and **443/tcp**.
+If you're using **UFW**, verify that both ports are allowed and open.
+
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw reload
+sudo ufw status
+```
+
+## Install the SSL Certificate Environment
+
+```bash
+sudo apt install certbot python3-certbot-apache -y
+```
+
+## Obtain the SSL Certificate
+
+```bash
+sudo certbot --apache
+```
+
+## Auto Renewal SSL
+
+```bash
+sudo certbot renew --dry-run
+```
+
+## WordPress PHP Package Modules
+
+Depending on the Linux distribution, the default PHP version may vary. Adjust the installation steps to install the correct PHP packages for your version.
+
+```bash
+sudo apt install -y php8.3 php8.3-cli php8.3-fpm \
+php8.3-mysql php8.3-xml php8.3-mbstring \
+php8.3-curl php8.3-gd php8.3-zip php8.3-bcmath \
+php-imagick php8.3-intl
+```
+
+## Use Cloudflare Tunnel to Publish the Website
+
+Please follow [this guide](https://www.jw-albert.tw/set-up-a-website-using-cloudflare-tunnel-cloudflares-internal-network-tunneling/) to configure Cloudflare Tunnel on Debian 12.
+
+**If you are already using Cloudflare Zero Trust Tunnel, it is strongly recommended to close ports 80/tcp and 443/tcp on your firewall.**
+
+## Solution: "There was an error publishing the post. The site may be offline."
+
+If this error occurs when accessing through Cloudflare CDN, install the WordPress plugin **Flexible SSL for CloudFlare**.
+
+## Modify PHP Upload Parameters
+
+```bash
+sudo nano /etc/php/8.3/apache2/php.ini
+```
+
+```ini
+upload_max_filesize = 64M
+post_max_size = 64M
+max_execution_time = 300
+```
+
+```bash
+sudo service apache2 reload
+```
+
+# Solution for Incorrect IP Addresses in Logs Caused by Cloudflare Traffic Forwarding
+
+## Enable the `mod_remoteip` Module
+
+```bash
+sudo a2enmod remoteip
+sudo systemctl restart apache2
+```
+
+## Modify the Apache Configuration File
+
+Edit `/etc/apache2/apache2.conf` or the corresponding VirtualHost file for your site:
+
+```apache
+RemoteIPHeader CF-Connecting-IP
+```
+
+## Update `LogFormat` to Use `%a` (RemoteIP)
+
+In `/etc/apache2/apache2.conf`, change:
+
+```apache
+LogFormat "%h %l %u %t \"%r\" %>s %b" common
+```
+
+To:
+
+```apache
+LogFormat "%a %l %u %t \"%r\" %>s %b" common
+```
+
+- `%h` — the raw source IP (unprocessed, shows Cloudflare's edge IP).
+- `%a` — the actual visitor IP resolved via the `mod_remoteip` module (the real IP behind Cloudflare).
+
+## Restart Apache
+
+```bash
+sudo systemctl restart apache2
+```
+
+</div>
+
+<div data-zh>
+
+## 環境需求
+
+- 已安裝 Debian 12 (Bookworm) 並具備 sudo 權限。
+- 若要對外公開服務，需已設定 DNS A 紀錄指向伺服器 IP。
+- 若使用 Cloudflare Tunnel / Zero Trust，無需對外開放 80/443 埠；否則請確認防火牆已放行 HTTP/HTTPS 流量。
+
+## SQL 伺服器設定
+
+請參考[此教學](https://www.jw-albert.tw/mariadb-install-on-debian-12/)在 Debian 12 上安裝 MariaDB。
+
+```bash
+mysql -u ACCOUNT -p
+```
+
+```sql
+CREATE DATABASE wordpress DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'wordpress'@'localhost' IDENTIFIED BY 'wordpress';
+GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+## 下載 WordPress
+
+```bash
+cd /var/www/html
+wget https://wordpress.org/latest.tar.gz
+tar -xzf latest.tar.gz
+rm latest.tar.gz
+```
+
+## 設定檔案權限
+
+```bash
+sudo chown -R www-data:www-data /var/www/html/wordpress
+sudo chmod -R 755 /var/www/html/wordpress
+```
+
+## Apache2 設定
+
+請參考[此教學](https://www.jw-albert.tw/apache2-install-on-debian-12/)在 Debian 12 上安裝 Apache2。
+
+```bash
+sudo nano /etc/apache2/sites-available/wordpress.conf
+```
+
+```apache
+<VirtualHost *:80>
+        ServerName SERVER_NAME
+
+        ServerAdmin ADMIN_MAIL_ADDRESS
+        DocumentRoot /var/www/html/wordpress
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+        <Directory /var/www/html/wordpress>
+                AllowOverride All
+                Require all granted
+        </Directory>
+</VirtualHost>
+```
+
+> 請務必將上述參數替換為實際的設定值。
+
+```bash
+sudo a2ensite wordpress.conf
+sudo a2enmod rewrite
+sudo systemctl reload apache2
+```
+
+## 防火牆安全設定
+
+請確認網路防火牆已允許 **80/tcp** 與 **443/tcp** 的入站流量。
+若使用 **UFW**，請確認這兩個埠已開放。
+
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw reload
+sudo ufw status
+```
+
+## 安裝 SSL 憑證環境
+
+```bash
+sudo apt install certbot python3-certbot-apache -y
+```
+
+## 取得 SSL 憑證
+
+```bash
+sudo certbot --apache
+```
+
+## SSL 自動續期
+
+```bash
+sudo certbot renew --dry-run
+```
+
+## WordPress PHP 套件模組
+
+不同 Linux 發行版的預設 PHP 版本可能不同，請依實際版本調整安裝指令。
+
+```bash
+sudo apt install -y php8.3 php8.3-cli php8.3-fpm \
+php8.3-mysql php8.3-xml php8.3-mbstring \
+php8.3-curl php8.3-gd php8.3-zip php8.3-bcmath \
+php-imagick php8.3-intl
+```
+
+## 使用 Cloudflare Tunnel 發布網站
+
+請參考[此教學](https://www.jw-albert.tw/set-up-a-website-using-cloudflare-tunnel-cloudflares-internal-network-tunneling/)在 Debian 12 上設定 Cloudflare Tunnel。
+
+**若已使用 Cloudflare Zero Trust Tunnel，強烈建議在防火牆上關閉 80/tcp 與 443/tcp 埠。**
+
+## 解決方案：「發佈時發生錯誤。這個網站目前可能處於離線狀態。」
+
+若此錯誤在透過 Cloudflare CDN 存取時出現，請安裝 WordPress 外掛 **Flexible SSL for CloudFlare**。
+
+## 修改 PHP 上傳參數
+
+```bash
+sudo nano /etc/php/8.3/apache2/php.ini
+```
+
+```ini
+upload_max_filesize = 64M
+post_max_size = 64M
+max_execution_time = 300
+```
+
+```bash
+sudo service apache2 reload
+```
+
+# 修正 Cloudflare 流量轉發導致日誌 IP 位址不正確的問題
+
+## 啟用 `mod_remoteip` 模組
+
+```bash
+sudo a2enmod remoteip
+sudo systemctl restart apache2
+```
+
+## 修改 Apache 設定檔
+
+編輯 `/etc/apache2/apache2.conf` 或網站對應的虛擬主機（VirtualHost）設定檔：
+
+```apache
+RemoteIPHeader CF-Connecting-IP
+```
+
+## 更新 `LogFormat` 使用 `%a`（RemoteIP）
+
+在 `/etc/apache2/apache2.conf` 中，將：
+
+```apache
+LogFormat "%h %l %u %t \"%r\" %>s %b" common
+```
+
+改為：
+
+```apache
+LogFormat "%a %l %u %t \"%r\" %>s %b" common
+```
+
+- `%h` — 原始來源 IP（未經處理，顯示的是 Cloudflare 邊緣節點的 IP）。
+- `%a` — 透過 `mod_remoteip` 模組解析出的實際訪客 IP（即 Cloudflare 後方的真實 IP）。
+
+## 重新啟動 Apache
+
+```bash
+sudo systemctl restart apache2
+```
+
+</div>

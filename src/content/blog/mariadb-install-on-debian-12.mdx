@@ -1,0 +1,83 @@
+---
+title: "MariaDB Install on Debian 12"
+titleZh: "在 Debian 12 上安裝 MariaDB"
+description: "Install and configure MariaDB on Debian 12, including security hardening and creating an admin account."
+descriptionZh: "在 Debian 12 上安裝並設定 MariaDB，包含安全強化與建立管理員帳號。"
+pubDate: "Apr 07 2025"
+---
+
+<div data-en>
+
+## Install MariaDB Server
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install mariadb-server -y
+```
+
+## Start MariaDB and Enable it to Launch on Startup
+
+```bash
+sudo systemctl start mariadb
+sudo systemctl enable mariadb
+```
+
+## Security Settings
+
+```bash
+sudo mysql_secure_installation
+```
+
+## Create Super Admin Account
+
+Login to the MySQL server.
+
+```bash
+mysql -u ACCOUNT -p
+```
+
+```sql
+CREATE USER 'admin'@'localhost' IDENTIFIED BY 'your_password';
+GRANT ALL PRIVILEGES ON *.* TO 'admin'@'localhost' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+```
+
+</div>
+
+<div data-zh>
+
+## 安裝 MariaDB 伺服器
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install mariadb-server -y
+```
+
+## 啟動 MariaDB 並設定開機自動啟動
+
+```bash
+sudo systemctl start mariadb
+sudo systemctl enable mariadb
+```
+
+## 安全性設定
+
+```bash
+sudo mysql_secure_installation
+```
+
+## 建立超級管理員帳號
+
+登入 MySQL 伺服器。
+
+```bash
+mysql -u ACCOUNT -p
+```
+
+```sql
+CREATE USER 'admin'@'localhost' IDENTIFIED BY '你的密碼';
+GRANT ALL PRIVILEGES ON *.* TO 'admin'@'localhost' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+```
+
+</div>

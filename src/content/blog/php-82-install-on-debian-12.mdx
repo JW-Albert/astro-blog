@@ -1,0 +1,91 @@
+---
+title: "PHP 8.2 Install on Debian 12"
+titleZh: "在 Debian 12 上安裝 PHP 8.2"
+description: "Install PHP 8.2 on Debian 12 using the Sury APT repository, with Apache integration and WordPress module support."
+descriptionZh: "使用 Sury APT 套件庫在 Debian 12 上安裝 PHP 8.2，包含 Apache 整合與 WordPress 所需模組。"
+pubDate: "Apr 07 2025"
+---
+
+<div data-en>
+
+## Add the Sury APT Repository
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y lsb-release apt-transport-https ca-certificates wget
+
+# Add Sury GPG key
+wget -qO - https://packages.sury.org/php/apt.gpg | sudo apt-key add -
+
+# Add Sury package source
+echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/php.list
+
+# Update package list
+sudo apt update && sudo apt upgrade -y
+```
+
+## Install PHP 8.2
+
+```bash
+sudo apt install -y php8.2
+```
+
+## Used with Apache
+
+```bash
+sudo apt install -y libapache2-mod-php8.2
+sudo systemctl restart apache2
+```
+
+## WordPress PHP Package Modules
+
+```bash
+sudo apt install -y php8.2-cli php8.2-fpm \
+php8.2-mysql php8.2-xml php8.2-mbstring \
+php8.2-curl php8.2-gd php8.2-zip php8.2-bcmath \
+php-imagick php8.2-intl
+```
+
+</div>
+
+<div data-zh>
+
+## 新增 Sury APT 套件庫
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y lsb-release apt-transport-https ca-certificates wget
+
+# 加入 Sury 的 GPG 金鑰
+wget -qO - https://packages.sury.org/php/apt.gpg | sudo apt-key add -
+
+# 加入 Sury 的套件源
+echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/php.list
+
+# 更新套件清單
+sudo apt update && sudo apt upgrade -y
+```
+
+## 安裝 PHP 8.2
+
+```bash
+sudo apt install -y php8.2
+```
+
+## 搭配 Apache 使用
+
+```bash
+sudo apt install -y libapache2-mod-php8.2
+sudo systemctl restart apache2
+```
+
+## WordPress PHP 套件模組
+
+```bash
+sudo apt install -y php8.2-cli php8.2-fpm \
+php8.2-mysql php8.2-xml php8.2-mbstring \
+php8.2-curl php8.2-gd php8.2-zip php8.2-bcmath \
+php-imagick php8.2-intl
+```
+
+</div>

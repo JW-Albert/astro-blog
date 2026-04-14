@@ -5,37 +5,303 @@ import Layout from '../layouts/BlogPost.astro';
 <Layout
 	title="About Me"
 	titleZh="關於我"
-	description="Lorem ipsum dolor sit amet"
-	pubDate={new Date('August 08 2021')}
-	heroImage="/blog-placeholder-about.jpg"
+	description="Albert Wang — System Engineer, CS student at Feng Chia University, passionate about embedded systems, cloud computing, and IoT."
+	descriptionZh="Albert Wang — 系統工程師、逢甲大學資訊工程系學生，專注於嵌入式系統、雲端運算與 IoT 應用整合。"
+	pubDate={new Date('2025-11-28')}
 >
-	<div data-en>
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-labore et dolore magna aliqua. Vitae ultricies leo integer malesuada nunc vel risus commodo
-viverra. Adipiscing enim eu turpis egestas pretium. Euismod elementum nisi quis eleifend quam
-adipiscing. In hac habitasse platea dictumst vestibulum. Sagittis purus sit amet volutpat. Netus
-et malesuada fames ac turpis egestas. Eget magna fermentum iaculis eu non diam phasellus
-vestibulum lorem. Varius sit amet mattis vulputate enim.
+<style>
+	details {
+		margin-bottom: 12px;
+		background: rgba(var(--gray-light), 0.5);
+		border-radius: 10px;
+		padding: 10px 16px;
+		transition: background 0.2s;
+	}
+	details:hover {
+		background: rgba(var(--gray-light), 0.8);
+	}
+	details summary {
+		cursor: pointer;
+		font-weight: 600;
+		font-size: 1rem;
+		list-style: none;
+		padding: 4px 0;
+	}
+	details summary::-webkit-details-marker { display: none; }
+	details ul {
+		margin-top: 8px;
+		margin-bottom: 4px;
+		padding-left: 1.2em;
+	}
+	details li {
+		line-height: 1.7;
+		margin-bottom: 4px;
+	}
+</style>
 
-Morbi tristique senectus et netus. Id semper risus in hendrerit gravida rutrum quisque non
-tellus. Habitasse platea dictumst quisque sagittis purus sit amet. Tellus molestie nunc non
-blandit massa. Cursus vitae congue mauris rhoncus. Accumsan tortor posuere ac ut. Fringilla urna
-porttitor rhoncus dolor. Elit ullamcorper dignissim cras tincidunt lobortis.
+<div data-en>
 
-Mollis nunc sed id semper risus in. Convallis a cras semper auctor neque. Diam sit amet nisl
-suscipit. Lacus viverra vitae congue eu consequat ac felis donec. Egestas integer eget aliquet
-nibh praesent tristique magna sit amet. Eget magna fermentum iaculis eu non diam.
+## A Brief Introduction
 
-	</div>
+Hi, I'm **Albert Wang**, a Computer Science student at **Feng Chia University** in Taiwan.
+I'm passionate about **embedded systems, cloud and edge computing, and AI-driven system integration**, and I enjoy building systems that truly work from the ground up.
 
-	<div data-zh>
+I currently work as a **System Engineer** at [**imCloud Co., Ltd.**](https://imcloud.co/),
+which is **Feng Chia University's fourth spin-off company**, originated from the **Intelligent Machines and Systems Laboratory (IMSL)**.
+The company and lab were founded by **Prof. Yuan-Jen Chang**, who previously served as a visiting scholar at the [**Center for Intelligent Maintenance Systems (IMS)**](https://researchdirectory.uc.edu/facilities/85) at the **University of Cincinnati**, led by **Prof. Jay Lee**.
+After returning to Taiwan, Prof. Chang introduced advanced **Predictive Health Management (PHM)** and **smart maintenance** technologies, which became the foundation for establishing both IMSL and imCloud.
+My current work focuses on **software development, sensor data acquisition, PHM applications**, and **AWS Greengrass Core (GGC)** services,
+where I build **data ingestion pipelines, device control logic, and IoT edge collaboration systems**.
 
-請在此填寫您的自我介紹。您可以分享您的背景、興趣、專業領域，以及建立這個部落格的動機。這個頁面是讓讀者認識您的好地方。
+Outside of work, I actively explore various **side projects**, especially with **Raspberry Pi** and **ESP32**.
+I'm a dedicated **DietPi** user, often experimenting with lightweight systems for server deployment, automation, and edge computing integration.
 
-這裡可以寫您的工作經歷、學術背景或個人故事。不需要面面俱到，選擇您最想讓讀者了解的部分即可。
+I'm also preparing for my next academic step — pursuing a **master's degree abroad** in **Canada** or the **United States**,
+focusing on **AI, data analytics, and predictive maintenance (PHM)**.
+To achieve that, I'm improving my English proficiency, aiming to reach **IELTS 6 / CEFR B2** within a year.
 
-歡迎透過部落格的聯絡方式與您交流！期待在這裡和讀者分享更多想法與文章。
+Beyond programming, I'm passionate about **flight simulation (VATSIM Callsign: EVA431)**, **photography**, and **amateur radio communication (BX7ADG)**.
 
-	</div>
+I'm also building my personal brand **Prisvalis**, with the domain [**prisvalis.com**](https://prisvalis.com).
+Although it's still in its early stage, my goal is to turn it into a platform that integrates **AI, data, and automation**,
+developing technologies that truly make a difference in everyday life.
+
+---
+
+## Bucket List
+
+### Travel
+- United States
+- Canada
+- Europe
+- Australia
+- *(Sounds like a trip around the world!)*
+
+### Study Abroad
+- Undergraduate Exchange Program
+- Master's Degree — United States or Canada
+- Work Abroad — Most likely Canada or Spain
+
+### Start a Business *(The Ultimate Goal)*
+- To build my own tech brand that combines creativity and AI to create technology that truly improves everyday life.
+
+---
+
+## Related Information
+
+- **GitHub:** [github.com/JW-Albert](https://github.com/JW-Albert)
+- **LinkedIn:** [linkedin.com/in/jw-albert](https://www.linkedin.com/in/jw-albert)
+
+## Education
+
+- Department of Information Engineering and Computer Science, Feng Chia University
+
+## Work Experience
+
+- Backend System Engineer at **imCloud Co., Ltd.** (2024/10 – 2025/12)
+
+## Licenses & Certifications
+
+**TQC / TQC+**
+- TQC+ Object-Oriented Programming (Java 8) — Fundamental Level
+- TQC+ Programming Language (Python 3) — Fundamental Level
+- TQC+ Programming Language (Python 3)
+- TQC Linux System Administration v3 (Ubuntu 22.04 LTS)
+
+**Amateur Radio**
+- Amateur Radio Operator's Certificate Class 3, Republic of China (Taiwan) — BM7IGW
+- Amateur Radio Operator's Certificate Class 2, Republic of China (Taiwan) — BX7ADG
+
+**Others**
+- Lifeguard Certification — R.O.C. Navy UDT Veterans Association
+- Emergency Medical Technician (EMT-1)
+- Civil Aviation Administration of Taiwan — General Remote Drone Operator Certificate
+
+</div>
+
+<div data-zh>
+
+## 簡單小介紹
+
+嗨，我是 **Albert Wang**，目前就讀於 **逢甲大學資訊工程學系**。
+我對 **嵌入式系統、雲端與邊緣運算、AI 應用整合** 充滿熱情，也熱愛親手打造能真正運作的系統。
+
+目前在 [**機智雲股份有限公司（imCloud Co., Ltd.）**](https://imcloud.co/) 擔任 **系統工程師**。
+機智雲為 **逢甲大學第四間衍生企業**，其技術與研究基礎源自 **逢甲大學智慧系統實驗室（IMSL）**，
+由 **張淵仁老師** 創立。張老師曾赴美至 **辛辛那提大學（University of Cincinnati）** 擔任訪問學者，
+與 **Jay Lee 教授** 所領導的 [**Center for Intelligent Maintenance Systems（IMS）**](https://researchdirectory.uc.edu/facilities/85) 合作研究，
+將智慧維護與預測性健康管理（PHM）等核心技術帶回台灣後，成立了 IMSL 與機智雲。
+我目前負責軟體開發、感測器訊號擷取、PHM 與 **AWS Greengrass Core（GGC）** 相關服務，
+專注於資料接收流程、設備控制邏輯與 IoT 邊緣協同架構的開發。
+
+我同時也熱衷於各類開發實驗與 side project，特別是 **樹莓派（Raspberry Pi）** 與 **ESP32**。
+我是 **DietPi** 的忠實使用者與愛好者，喜歡在輕量化系統上實作各種伺服器與自動化方案。
+
+除了技術實作，我也在規劃出國深造。
+希望在研究所階段前往 **加拿大** 或 **美國**，專注於 **AI、資料分析與預測性維護（PHM）** 相關領域。
+為此，我正持續提升英文能力，目標在一年內達到 **IELTS 6 / CEFR B2** 水準。
+
+程式之外，我熱愛 **飛行模擬（VATSIM Callsign: EVA431）**、**攝影**，以及 **業餘無線電通訊（Callsign: BX7ADG）**。
+
+同時，我正在籌劃個人品牌 **Prisvalis**，並註冊了 [**prisvalis.com**](https://prisvalis.com)。
+雖然目前仍在初始階段，但我希望未來能將其發展為結合 **AI、資料與自動化** 的創新平台，
+以技術實現能真正改變生活的產品。
+
+---
+
+## 人生清單
+
+### 旅遊 Travel
+- 美國 United States
+- 加拿大 Canada
+- 歐洲 Europe
+- 澳洲 Australia
+- *（聽起來像環遊世界！）*
+
+### 留學
+- 大學交換計畫
+- 攻讀碩士：美國或加拿大
+- 海外工作：加拿大或西班牙
+
+### 創業（終極目標）
+- 建立屬於自己的技術品牌，將創意與 AI 技術結合，打造能真正改變生活的產品。
+
+---
+
+## 相關資料
+
+- **GitHub：** [github.com/JW-Albert](https://github.com/JW-Albert)
+- **LinkedIn：** [linkedin.com/in/jw-albert](https://www.linkedin.com/in/jw-albert)
+
+## 學習經歷
+
+- 逢甲大學 資訊工程學系
+
+## 工作經驗
+
+- 機智雲股份有限公司 系統工程師（2024/10 – 2025/12）
+
+## 證照經歷
+
+**企業人才技能認證 TQC / TQC+**
+- TQC+ 基礎物件導向程式語言（Java 8）
+- TQC+ 基礎程式語言（Python 3）
+- TQC+ 程式語言（Python 3）
+- TQC Linux 系統管理第 3 版（Ubuntu 22.04 LTS）
+
+**業餘無線電人員執照**
+- 中華民國三等業餘無線電人員執照（BM7IGW）
+- 中華民國二等業餘無線電人員執照（BX7ADG）
+
+**其他**
+- 中華民國海軍水中爆破隊退伍人員協會救生員證照
+- 初級緊急救護技術員證照（EMT-1）
+- 中華民國交通部民用航空局遙控無人機普通操作證
+
+</div>
+
+---
+
+## Skill Tree ｜ 技能樹
+
+<details open>
+  <summary>🌐 網路與雲端技術 | Networking &amp; Cloud Technologies</summary>
+  <ul>
+    <li><strong>Cloudflare</strong>：DNS、Proxy、Zero Trust、Tunnel、WARP Connector</li>
+    <li><strong>Network Infrastructure</strong>：DNS Server 架設、MikroTik 防火牆與交換機管理、RouterOS 設定、VLAN / Layer 2/3 配置</li>
+    <li><strong>AWS</strong>：IoT Core、EC2 / ECS / RDS、VPC、IAM、Security Group</li>
+  </ul>
+</details>
+
+<details>
+  <summary>🖥️ 伺服器與虛擬化平台 | Server &amp; Virtualization</summary>
+  <ul>
+    <li><strong>Windows Server</strong>：2012 R2 / 2022、Hyper-V</li>
+    <li><strong>Linux &amp; Proxmox</strong>：Proxmox VE、Debian 9–13、Ubuntu 20.04 / 24.04、DietPi v9.12（輕量伺服器）</li>
+  </ul>
+</details>
+
+<details>
+  <summary>💻 程式開發 | Programming &amp; Development</summary>
+  <ul>
+    <li><strong>C / C++</strong>：Package Development、Network Programming（Socket / Thread）</li>
+    <li><strong>Java</strong>：Object-Oriented Application Development</li>
+    <li><strong>Python 3</strong>：Flask、scikit-learn、seaborn、YOLOFlow、Roboflow、Package Development</li>
+    <li><strong>Frontend</strong>：HTML / JavaScript / CSS、PHP Integration</li>
+    <li><strong>Database</strong>：MySQL / MariaDB</li>
+  </ul>
+</details>
+
+<details>
+  <summary>⚙️ 嵌入式系統與 IoT | Embedded Systems &amp; IoT</summary>
+  <ul>
+    <li><strong>Raspberry Pi</strong>：GPIO 控制、Python 腳本自動化、IoT 整合</li>
+    <li><strong>Microcontrollers</strong>：Raspberry Pi Pico W、ESP-32S</li>
+    <li><strong>Infrastructure as Code (IaC)</strong>：Terraform（Cloudflare、AWS）</li>
+  </ul>
+</details>
+
+<details>
+  <summary>🧠 健康預測與感測技術 | PHM &amp; Sensor Integration</summary>
+  <ul>
+    <li><strong>PHM</strong>：機械健康監測、壽命預測、資料蒐集與可視化</li>
+    <li><strong>Sensor Software</strong>：NI-DAQ、Pw-Rvt、Modbus RTU RS-485、ICP DAS (PET-AR400)、AudioDAQ 模組</li>
+  </ul>
+</details>
+
+<details>
+  <summary>🔐 資訊安全 | Information &amp; Network Security</summary>
+  <ul>
+    <li>UFW、防火牆規則設定</li>
+    <li>fail2ban 入侵防護</li>
+    <li>Sophos 安全管理</li>
+    <li>AWS Security Configuration</li>
+    <li>MikroTik 防火牆</li>
+  </ul>
+</details>
+
+<details>
+  <summary>🧩 網域與身分驗證 | Active Directory &amp; Identity</summary>
+  <ul>
+    <li><strong>Windows AD</strong>：伺服器架設、帳號與群組管理、RADIUS 驗證整合</li>
+    <li><strong>Linux Samba AD</strong></li>
+    <li><strong>AWS Simple AD</strong></li>
+  </ul>
+</details>
+
+---
+
+## 興趣 | Hobbies
+
+<div data-en>
+
+- **Microsoft Flight Simulator** — Simulating IFR routes and real-world ATC communication on VATSIM (Callsign: EVA431).
+- **Photography** — Capturing urban scenery and night scenes through the lens.
+- **Drone** — Licensed drone operator (Civil Aeronautics Administration of Taiwan), skilled in aerial photography.
+- **Amateur Radio** — Licensed operator (Callsign: BX7ADG, Class 2), engaged in radio communication experiments and antenna testing.
+- **Travel** — Exploring diverse cultures and natural landscapes.
+  - **Taiwan:** Taipei, Taichung, Kaohsiung, Tainan, Taitung, Guangfu in Hualien
+  - **International:**
+    - 2014/07–08 — China
+    - 2025/08 — Japan: Osaka, Kyoto
+    - 2026/02 — USA: Phoenix (AZ), Las Vegas (NV), Los Angeles (CA)
+
+</div>
+
+<div data-zh>
+
+- **微軟模擬飛行（Microsoft Flight Simulator）** — 模擬 IFR 航線與真實航空電台通信（VATSIM Callsign: EVA431）。
+- **攝影（Photography）** — 喜歡用鏡頭捕捉城市氛圍與夜景。
+- **空拍機（Drone）** — 具備民航局遙控無人機操作證照，擅長空拍攝影與地景紀錄。
+- **業餘無線電（Amateur Radio）** — 呼號 **BX7ADG**（二等執照），常進行通訊實驗與天線架設測試。
+- **旅遊（Travel）** — 探索各地文化與自然景觀。
+  - **國內：** 台北、台中、高雄、台南、台東、花蓮光復
+  - **國外：**
+    - 2014/07–08 — 中國
+    - 2025/08 — 日本：大阪、京都
+    - 2026/02 — 美國：鳳凰城（AZ）、拉斯維加斯（NV）、洛杉磯（CA）
+
+</div>
+
 </Layout>

@@ -1,0 +1,511 @@
+---
+title: "Shadow System Explanation"
+titleZh: "Shadow 系統說明"
+description: "An explanation of the Shadow system that simulates AWS IoT Device Shadow for state synchronization between a frontend, edge device, and physical hardware."
+descriptionZh: "說明模擬 AWS IoT Device Shadow 的 Shadow 系統，用於前端控制介面、本地閘道與實體裝置之間的狀態同步。"
+pubDate: "Apr 20 2025"
+---
+
+<div data-en>
+
+In this project, the Shadow system simulates the AWS IoT Device Shadow, managing the state synchronization between a central control interface (frontend), a local gateway (edge device), and the physical device.
+
+## What is a Shadow?
+
+A shadow is a virtual representation of a device's state in the system. It stores the **desired state**, the **reported state**, and the **delta** (difference).
+
+## JSON Structure Example
+
+```json
+{
+  "state": {
+    "desired": {
+      "status": 1,
+      "permission": 1
+    },
+    "reported": {
+      "status": 0,
+      "permission": 1
+    }
+  },
+  "delta": {
+    "status": 1
+  }
+}
+```
+
+- `desired`: what the central control wants the device to do.
+- `reported`: what the device is currently doing.
+- `delta`: the difference between `desired` and `reported` (only present when they differ).
+
+## Workflow
+
+1. Central control sends the desired state via API.
+2. Shadow calculates the delta (difference between desired and reported).
+3. Local gateway fetches the delta and performs the hardware action.
+4. Device reports its actual state, updating the `reported` field.
+5. Shadow recalculates the delta. If synchronized, delta becomes empty.
+
+## Emergency Local Control
+
+If central control is offline, the local gateway can enter emergency mode and override permission settings for safety reasons.
+
+## File Format
+
+Each device has a shadow stored as a JSON file:
+
+- `shadow_device001.json`
+- `shadow_device002.json`
+- ...
+
+These files are managed via the Flask backend.
+
+## Environment Setup
+
+OS: Debian 12
+
+Python: 3
+
+```bash
+sudo apt update -y && apt upgrade -y && \
+sudo apt install -y apache2 git python3 python3-pip python3-venv && \
+mkdir Shadow && cd Shadow && \
+python3 -m venv venv && \
+pip install flask && \
+source venv/bin/activate && \
+mkdir src && \
+mkdir shadow
+```
+
+```bash
+export FLASK_APP=src/main.py && \
+export FLASK_ENV=development && \
+flask run --host=0.0.0.0 --port=5000
+```
+
+## Main Program
+
+```bash
+nano src/main.py
+```
+
+```python
+from flask import Flask, request, jsonify
+import os
+import json
+
+app = Flask(__name__)
+
+# === Configuration ===
+SHADOW_FILE = os.path.join(os.path.dirname(__file__), '../shadow/shadow.json')
+SECRET_KEY = "my-secure-api-key"
+
+# === Pre-request handler (authorization check + request logging) ===
+@app.before_request
+def before_request():
+    print(f"Request received: {request.method} {request.path}")
+    if request.method != "OPTIONS":
+        token = request.headers.get("Authorization")
+        if token != SECRET_KEY:
+            print("Unauthorized request")
+            return jsonify({"error": "Unauthorized"}), 401
+
+# === Initialize JSON if it does not exist ===
+def load_shadow():
+    if not os.path.exists(SHADOW_FILE):
+        os.makedirs(os.path.dirname(SHADOW_FILE), exist_ok=True)
+        data = {
+            "state": {
+                "desired": {
+                    "status": 0,
+                    "permission": 1
+                },
+                "reported": {
+                    "status": 0,
+                    "permission": 1
+                }
+            },
+            "delta": {}
+        }
+        save_shadow(data)
+        return data
+    with open(SHADOW_FILE, 'r') as f:
+        return json.load(f)
+
+def save_shadow(data):
+    with open(SHADOW_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
+
+# === Calculate delta field ===
+def update_delta(shadow):
+    desired = shadow["state"].get("desired", {})
+    reported = shadow["state"].get("reported", {})
+    delta = {}
+    for key, val in desired.items():
+        if reported.get(key) != val:
+            delta[key] = val
+    shadow["delta"] = delta
+    return shadow
+
+# === Update desired / reported ===
+@app.route('/shadow/update', methods=['POST'])
+def update_shadow():
+    req = request.get_json()
+    shadow_type = req.get("type")
+    update_data = req.get("data", {})
+
+    if shadow_type not in ["desired", "reported"]:
+        return jsonify({"error": "Invalid type"}), 400
+
+    shadow = load_shadow()
+    shadow["state"][shadow_type].update(update_data)
+    shadow = update_delta(shadow)
+    save_shadow(shadow)
+
+    return jsonify({
+        "message": f"{shadow_type} updated",
+        "delta": shadow["delta"]
+    })
+
+# === Query shadow data ===
+@app.route('/shadow/get', methods=['GET'])
+def get_shadow_data():
+    shadow_type = request.args.get("type", "full")
+    shadow = load_shadow()
+
+    if shadow_type == "desired":
+        return jsonify(shadow["state"]["desired"])
+    elif shadow_type == "reported":
+        return jsonify(shadow["state"]["reported"])
+    elif shadow_type == "delta":
+        return jsonify(shadow["delta"])
+    elif shadow_type == "full":
+        return jsonify(shadow)
+    else:
+        return jsonify({"error": "Invalid type"}), 400
+
+# === Start Flask server ===
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+```
+
+## Apache2 Configuration
+
+`www.conf` for HTTP:
+
+```bash
+sudo nano /etc/apache2/sites-available/www.conf
+```
+
+```apache
+<VirtualHost *:80>
+	ServerName SERVERNAME
+
+	ServerAdmin SERVERADMIN
+	DocumentRoot /var/www/html
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+#RewriteEngine off
+#RewriteCond %{SERVER_NAME} =SERVERNAME
+#RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
+</VirtualHost>
+```
+
+`www-le-ssl.conf` for HTTPS:
+
+```bash
+sudo nano /etc/apache2/sites-available/www-le-ssl.conf
+```
+
+```apache
+<IfModule mod_ssl.c>
+<VirtualHost *:443>
+	ServerName SERVERNAME
+
+	ServerAdmin SERVERADMIN
+	DocumentRoot /var/www/html
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+SSLCertificateFile /etc/letsencrypt/live/SERVERNAME/fullchain.pem
+SSLCertificateKeyFile /etc/letsencrypt/live/SERVERNAME/privkey.pem
+Include /etc/letsencrypt/options-ssl-apache.conf
+
+# Flask Shadow API reverse proxy
+ProxyPreserveHost On
+RequestHeader set Authorization "my-secure-api-key"
+ProxyPass "/api/" "http://127.0.0.1:5000/"
+ProxyPassReverse "/api/" "http://127.0.0.1:5000/"
+
+</VirtualHost>
+</IfModule>
+```
+
+> `SERVERNAME`, `SERVERADMIN`, and `my-secure-api-key` should be updated to match your actual settings.
+>
+> The `www-le-ssl.conf` file should only be written and enabled **after** the SSL certificate has been successfully created.
+
+> The main task for Apache2 here is to reverse-proxy the internal port 5000 (Shadow program) to the `/api` path.
+
+For a basic guide on enabling Apache2 and SSL, refer to: [https://www.jw-albert.tw/apache2-install-on-debian-12/](https://www.jw-albert.tw/apache2-install-on-debian-12/)
+
+## This Project is Synchronized on GitHub
+
+GitHub Link: [https://github.com/JW-Albert/IOT_Shadow_Display_UnixFinal/tree/Shadow](https://github.com/JW-Albert/IOT_Shadow_Display_UnixFinal/tree/Shadow)
+
+</div>
+
+<div data-zh>
+
+本專案中的 Shadow 系統模擬 AWS IoT Device Shadow 的機制，負責管理中央控制介面（前端）、本地閘道（邊緣裝置）與實體裝置之間的狀態同步。
+
+## 什麼是 Shadow？
+
+Shadow 是系統中裝置狀態的虛擬代理。它儲存三種狀態：**期望狀態（desired）**、**回報狀態（reported）** 以及**差異值（delta）**。
+
+## JSON 結構範例
+
+```json
+{
+  "state": {
+    "desired": {
+      "status": 1,
+      "permission": 1
+    },
+    "reported": {
+      "status": 0,
+      "permission": 1
+    }
+  },
+  "delta": {
+    "status": 1
+  }
+}
+```
+
+- `desired`：中央控制端期望裝置執行的狀態。
+- `reported`：裝置目前實際回報的狀態。
+- `delta`：`desired` 與 `reported` 之間的差異（僅在兩者不一致時出現）。
+
+## 運作流程
+
+1. 中央控制端透過 API 送出期望狀態（desired）。
+2. Shadow 計算差異值（delta = desired − reported）。
+3. 本地閘道取得 delta，對硬體執行對應動作。
+4. 裝置回報實際狀態，更新 `reported` 欄位。
+5. Shadow 重新計算 delta；若兩者已同步，delta 變為空物件。
+
+## 緊急本地控制
+
+若中央控制端離線，本地閘道可進入緊急模式，基於安全考量強制覆寫權限設定。
+
+## 檔案格式
+
+每個裝置都有一個以 JSON 檔案儲存的 Shadow：
+
+- `shadow_device001.json`
+- `shadow_device002.json`
+- ...
+
+這些檔案由 Flask 後端統一管理。
+
+## 環境建置
+
+作業系統：Debian 12
+
+Python：3
+
+```bash
+sudo apt update -y && apt upgrade -y && \
+sudo apt install -y apache2 git python3 python3-pip python3-venv && \
+mkdir Shadow && cd Shadow && \
+python3 -m venv venv && \
+pip install flask && \
+source venv/bin/activate && \
+mkdir src && \
+mkdir shadow
+```
+
+```bash
+export FLASK_APP=src/main.py && \
+export FLASK_ENV=development && \
+flask run --host=0.0.0.0 --port=5000
+```
+
+## 主程式
+
+```bash
+nano src/main.py
+```
+
+```python
+from flask import Flask, request, jsonify
+import os
+import json
+
+app = Flask(__name__)
+
+# === 設定 ===
+SHADOW_FILE = os.path.join(os.path.dirname(__file__), '../shadow/shadow.json')
+SECRET_KEY = "my-secure-api-key"
+
+# === 請求前處理（授權檢查 + 請求日誌） ===
+@app.before_request
+def before_request():
+    print(f"收到請求: {request.method} {request.path}")
+    if request.method != "OPTIONS":
+        token = request.headers.get("Authorization")
+        if token != SECRET_KEY:
+            print("Unauthorized request")
+            return jsonify({"error": "Unauthorized"}), 401
+
+# === 初始化 JSON（若檔案不存在） ===
+def load_shadow():
+    if not os.path.exists(SHADOW_FILE):
+        os.makedirs(os.path.dirname(SHADOW_FILE), exist_ok=True)
+        data = {
+            "state": {
+                "desired": {
+                    "status": 0,
+                    "permission": 1
+                },
+                "reported": {
+                    "status": 0,
+                    "permission": 1
+                }
+            },
+            "delta": {}
+        }
+        save_shadow(data)
+        return data
+    with open(SHADOW_FILE, 'r') as f:
+        return json.load(f)
+
+def save_shadow(data):
+    with open(SHADOW_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
+
+# === 計算 delta 欄位 ===
+def update_delta(shadow):
+    desired = shadow["state"].get("desired", {})
+    reported = shadow["state"].get("reported", {})
+    delta = {}
+    for key, val in desired.items():
+        if reported.get(key) != val:
+            delta[key] = val
+    shadow["delta"] = delta
+    return shadow
+
+# === 更新 desired / reported ===
+@app.route('/shadow/update', methods=['POST'])
+def update_shadow():
+    req = request.get_json()
+    shadow_type = req.get("type")
+    update_data = req.get("data", {})
+
+    if shadow_type not in ["desired", "reported"]:
+        return jsonify({"error": "Invalid type"}), 400
+
+    shadow = load_shadow()
+    shadow["state"][shadow_type].update(update_data)
+    shadow = update_delta(shadow)
+    save_shadow(shadow)
+
+    return jsonify({
+        "message": f"{shadow_type} updated",
+        "delta": shadow["delta"]
+    })
+
+# === 查詢 shadow 資料 ===
+@app.route('/shadow/get', methods=['GET'])
+def get_shadow_data():
+    shadow_type = request.args.get("type", "full")
+    shadow = load_shadow()
+
+    if shadow_type == "desired":
+        return jsonify(shadow["state"]["desired"])
+    elif shadow_type == "reported":
+        return jsonify(shadow["state"]["reported"])
+    elif shadow_type == "delta":
+        return jsonify(shadow["delta"])
+    elif shadow_type == "full":
+        return jsonify(shadow)
+    else:
+        return jsonify({"error": "Invalid type"}), 400
+
+# === 啟動 Flask 伺服器 ===
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+```
+
+## Apache2 設定
+
+HTTP 虛擬主機設定（`www.conf`）：
+
+```bash
+sudo nano /etc/apache2/sites-available/www.conf
+```
+
+```apache
+<VirtualHost *:80>
+	ServerName SERVERNAME
+
+	ServerAdmin SERVERADMIN
+	DocumentRoot /var/www/html
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+#RewriteEngine off
+#RewriteCond %{SERVER_NAME} =SERVERNAME
+#RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
+</VirtualHost>
+```
+
+HTTPS 虛擬主機設定（`www-le-ssl.conf`）：
+
+```bash
+sudo nano /etc/apache2/sites-available/www-le-ssl.conf
+```
+
+```apache
+<IfModule mod_ssl.c>
+<VirtualHost *:443>
+	ServerName SERVERNAME
+
+	ServerAdmin SERVERADMIN
+	DocumentRoot /var/www/html
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+SSLCertificateFile /etc/letsencrypt/live/SERVERNAME/fullchain.pem
+SSLCertificateKeyFile /etc/letsencrypt/live/SERVERNAME/privkey.pem
+Include /etc/letsencrypt/options-ssl-apache.conf
+
+# Flask Shadow API 反向代理
+ProxyPreserveHost On
+RequestHeader set Authorization "my-secure-api-key"
+ProxyPass "/api/" "http://127.0.0.1:5000/"
+ProxyPassReverse "/api/" "http://127.0.0.1:5000/"
+
+</VirtualHost>
+</IfModule>
+```
+
+> `SERVERNAME`、`SERVERADMIN` 與 `my-secure-api-key` 請替換為實際設定值。
+>
+> `www-le-ssl.conf` 必須在 SSL 憑證成功申請後才能建立並啟用。
+
+> Apache2 在此的主要任務是將內部 5000 埠（Shadow 程式）透過反向代理對應至 `/api` 路徑。
+
+Apache2 與 SSL 啟用的基本教學請參考：[https://www.jw-albert.tw/apache2-install-on-debian-12/](https://www.jw-albert.tw/apache2-install-on-debian-12/)
+
+## 本專案已同步至 GitHub
+
+GitHub 連結：[https://github.com/JW-Albert/IOT_Shadow_Display_UnixFinal/tree/Shadow](https://github.com/JW-Albert/IOT_Shadow_Display_UnixFinal/tree/Shadow)
+
+</div>

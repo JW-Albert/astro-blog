@@ -1,0 +1,69 @@
+---
+title: "Apache2 Install on Debian 12"
+titleZh: "在 Debian 12 上安裝 Apache2"
+description: "Step-by-step guide to install Apache2 and configure SSL certificates on Debian 12."
+descriptionZh: "在 Debian 12 上安裝 Apache2 並設定 SSL 憑證的逐步教學。"
+pubDate: "Apr 20 2025"
+---
+
+<div data-en>
+
+## System Environment
+
+OS: Debian 12
+
+```bash
+sudo apt update -y && sudo apt upgrade -y && \
+sudo apt install apache2
+```
+
+## Install the SSL Certificate Environment
+
+```bash
+sudo apt install certbot python3-certbot-apache -y
+```
+
+## Obtain the SSL Certificate
+
+```bash
+sudo certbot --apache
+```
+
+## Auto Renewal
+
+```bash
+sudo certbot renew --dry-run
+```
+
+</div>
+
+<div data-zh>
+
+## 系統環境
+
+作業系統：Debian 12
+
+```bash
+sudo apt update -y && sudo apt upgrade -y && \
+sudo apt install apache2
+```
+
+## 安裝 SSL 憑證環境
+
+```bash
+sudo apt install certbot python3-certbot-apache -y
+```
+
+## 取得 SSL 憑證
+
+```bash
+sudo certbot --apache
+```
+
+## 自動續期
+
+```bash
+sudo certbot renew --dry-run
+```
+
+</div>

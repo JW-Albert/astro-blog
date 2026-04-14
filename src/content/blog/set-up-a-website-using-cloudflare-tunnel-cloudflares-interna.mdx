@@ -1,0 +1,69 @@
+---
+title: "Set up a website using Cloudflare Tunnel (Cloudflare's internal network tunneling)"
+titleZh: "使用 Cloudflare Tunnel 架設網站（Cloudflare 內網穿透）"
+description: "Use Cloudflare Zero Trust to publish a server hosted in a local network environment to the public internet."
+descriptionZh: "利用 Cloudflare Zero Trust 功能，將架設在內網環境的伺服器安全地發布至公共網路。"
+pubDate: "Nov 28 2025"
+---
+
+<div data-en>
+
+This article covers how to use Cloudflare's Zero Trust feature to publish a server hosted in a local network environment to the public internet.
+
+## Author's Environment
+
+- Server: Windows Hyper-V VM
+- OS: Debian 13
+
+## Cloudflare Setup
+
+The most basic requirement is that you must own a domain and have it managed through Cloudflare.
+
+## Set the DNS Hosts to Those Provided by Cloudflare
+
+Using Chunghwa Telecom HiNet's DNS service as an example: add the nameservers specified by Cloudflare to the domain registrar's (HiNet) DNS host configuration page.
+
+## Start Configuring Cloudflare Zero Trust
+
+Navigate to the Zero Trust settings page from the left-hand menu, or click **Access** and then enter the Zero Trust settings page.
+
+## Connect the Host to Cloudflare
+
+Follow the setup by navigating to: **Left sidebar → Networks → Connectors → Create a tunnel → Cloudflared**.
+
+Select the corresponding installation command based on the device's operating system.
+
+Configure the DNS record.
+
+</div>
+
+<div data-zh>
+
+本文主要介紹如何利用 Cloudflare 的 Zero Trust 功能，將架設在內網環境的伺服器安全地發布至公共網路上。
+
+## 作者環境
+
+- 伺服器：Windows Hyper-V 虛擬機器
+- 作業系統：Debian 13
+
+## Cloudflare 設定
+
+最基本的要求是您必須擁有一個網域，並且已將其託管在 Cloudflare 上。
+
+## 將 DNS 主機設定為 Cloudflare 提供的伺服器
+
+以中華電信 HiNet DNS 服務為例，將 Cloudflare 指定的 Nameservers 填入網域商（HiNet）的 DNS 主機設定頁面。
+
+## 開始設定 Cloudflare Zero Trust
+
+從左側選單導航至 Zero Trust 設定頁面，或點選 **Access** 後進入 Zero Trust 設定頁面。
+
+## 將主機連接至 Cloudflare
+
+依照以下路徑進行設定：**左側導航欄 → Networks → Connectors → Create a tunnel → Cloudflared**。
+
+根據裝置的作業系統選擇對應的安裝指令。
+
+設定 DNS 紀錄。
+
+</div>

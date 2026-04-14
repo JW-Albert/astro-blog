@@ -1,0 +1,125 @@
+---
+title: "Modify System and Hardware Time in Debian 12"
+titleZh: "在 Debian 12 上修改系統與硬體時間"
+description: "Configure systemd-timesyncd with Taiwan NTP servers and sync the hardware clock on Debian 12."
+descriptionZh: "在 Debian 12 上使用 systemd-timesyncd 設定台灣 NTP 伺服器並同步硬體時鐘。"
+pubDate: "Apr 20 2025"
+---
+
+<div data-en>
+
+## Install systemd-timesyncd
+
+```bash
+sudo apt update -y && sudo apt upgrade -y
+sudo apt install systemd-timesyncd -y
+```
+
+## Set the Time Zone to Asia/Taipei
+
+```bash
+sudo timedatectl set-timezone Asia/Taipei
+```
+
+## Enable and Start the Time Synchronization Service
+
+```bash
+systemctl enable systemd-timesyncd --now
+```
+
+## Configure Multiple Taiwan NTP Servers
+
+```bash
+sudo nano /etc/systemd/timesyncd.conf
+```
+
+```bash
+[Time]
+NTP=tick.stdtime.gov.tw tock.stdtime.gov.tw time.stdtime.gov.tw watch.stdtime.gov.tw clock.stdtime.gov.tw
+FallbackNTP=0.debian.pool.ntp.org 1.debian.pool.ntp.org
+```
+
+## Enable NTP
+
+```bash
+sudo timedatectl set-ntp true
+```
+
+## Restart the systemd-timesyncd Service
+
+```bash
+sudo systemctl restart systemd-timesyncd
+```
+
+## Synchronize Hardware Clock
+
+```bash
+sudo hwclock --systohc
+```
+
+## Display Hardware Clock
+
+```bash
+hwclock --show
+```
+
+</div>
+
+<div data-zh>
+
+## 安裝 systemd-timesyncd
+
+```bash
+sudo apt update -y && sudo apt upgrade -y
+sudo apt install systemd-timesyncd -y
+```
+
+## 設定時區為 Asia/Taipei
+
+```bash
+sudo timedatectl set-timezone Asia/Taipei
+```
+
+## 啟用並啟動時間同步服務
+
+```bash
+systemctl enable systemd-timesyncd --now
+```
+
+## 設定多個台灣 NTP 伺服器
+
+```bash
+sudo nano /etc/systemd/timesyncd.conf
+```
+
+```bash
+[Time]
+NTP=tick.stdtime.gov.tw tock.stdtime.gov.tw time.stdtime.gov.tw watch.stdtime.gov.tw clock.stdtime.gov.tw
+FallbackNTP=0.debian.pool.ntp.org 1.debian.pool.ntp.org
+```
+
+## 啟用 NTP
+
+```bash
+sudo timedatectl set-ntp true
+```
+
+## 重新啟動 systemd-timesyncd 服務
+
+```bash
+sudo systemctl restart systemd-timesyncd
+```
+
+## 同步硬體時鐘
+
+```bash
+sudo hwclock --systohc
+```
+
+## 顯示硬體時鐘
+
+```bash
+hwclock --show
+```
+
+</div>

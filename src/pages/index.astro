@@ -9,81 +9,108 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 <html lang="en">
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				max-width: 800px;
+				margin: 0 auto;
+				padding: 4em 2em;
+			}
+			.hero {
+				text-align: center;
+				margin-bottom: 3em;
+			}
+			.hero h1 {
+				font-size: 3rem;
+				margin-bottom: 0.3em;
+			}
+			.tagline {
+				font-size: 1.1rem;
+				color: rgb(var(--gray));
+				margin-bottom: 2em;
+			}
+			.intro {
+				font-size: 1.05rem;
+				line-height: 1.8;
+				color: rgb(var(--gray-dark));
+				margin-bottom: 2.5em;
+			}
+			.links {
+				display: flex;
+				gap: 1em;
+				justify-content: center;
+				flex-wrap: wrap;
+			}
+			.links a {
+				padding: 0.6em 1.4em;
+				border-radius: 8px;
+				text-decoration: none;
+				font-weight: 600;
+				transition: opacity 0.2s;
+			}
+			.links a:hover {
+				opacity: 0.8;
+			}
+			.btn-primary {
+				background: var(--accent);
+				color: white;
+			}
+			.btn-secondary {
+				border: 2px solid var(--accent);
+				color: var(--accent);
+			}
+			hr {
+				margin: 3em 0;
+				border: none;
+				border-top: 1px solid rgb(var(--gray-light));
+			}
+			.rebuild-note {
+				text-align: center;
+				color: rgb(var(--gray));
+				font-size: 0.95rem;
+				font-style: italic;
+			}
+		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<h1>
-				<span data-en>🧑‍🚀 Hello, Astronaut!</span>
-				<span data-zh>🧑‍🚀 你好，太空人！</span>
-			</h1>
-			<p>
+			<div class="hero">
+				<h1>PRISVALIS</h1>
+				<p class="tagline">
+					<span data-zh>王老師生命專線</span>
+					<span data-en>Albert Wang's Tech Blog</span>
+				</p>
+			</div>
+
+			<div class="intro">
 				<span data-en>
-					Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This
-					template serves as a lightweight, minimally-styled starting point for anyone looking to build
-					a personal website, blog, or portfolio with Astro.
+					<p>Hi, I'm <strong>Albert Wang</strong>, a Computer Science student at <strong>Feng Chia University</strong> in Taiwan.</p>
+					<p>I'm passionate about <strong>embedded systems, cloud and edge computing, and AI-driven system integration</strong>. I currently work as a System Engineer at <strong>imCloud Co., Ltd.</strong>, building data ingestion pipelines, device control logic, and IoT edge collaboration systems.</p>
+					<p>This is where I document my technical projects, server setups, and anything else I find worth sharing.</p>
 				</span>
 				<span data-zh>
-					歡迎使用官方 <a href="https://astro.build/">Astro</a> 部落格入門範本。這個範本是一個輕量、極簡樣式的起點，適合任何想用 Astro 建立個人網站、部落格或作品集的人。
+					<p>嗨，我是 <strong>Albert Wang</strong>，目前就讀於 <strong>逢甲大學資訊工程學系</strong>。</p>
+					<p>我對 <strong>嵌入式系統、雲端與邊緣運算、AI 應用整合</strong> 充滿熱情。目前在 <strong>機智雲股份有限公司</strong> 擔任系統工程師，負責資料接收流程、設備控制邏輯與 IoT 邊緣協同架構的開發。</p>
+					<p>這裡記錄我的技術專案、伺服器架設筆記，以及一切值得分享的東西。</p>
 				</span>
-			</p>
-			<p>
-				<span data-en>
-					This template comes with a few integrations already configured in your
-					<code>astro.config.mjs</code> file. You can customize your setup with
-					<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like Tailwind,
-					React, or Vue to your project.
-				</span>
-				<span data-zh>
-					此範本已在 <code>astro.config.mjs</code> 中預先設定好幾個整合套件。你可以透過
-					<a href="https://astro.build/integrations">Astro 整合</a> 為專案加入 Tailwind、React 或 Vue 等工具。
-				</span>
-			</p>
-			<p>
-				<span data-en>Here are a few ideas on how to get started with the template:</span>
-				<span data-zh>以下是幾個開始使用範本的建議：</span>
-			</p>
-			<ul>
-				<li>
-					<span data-en>Edit this page in <code>src/pages/index.astro</code></span>
-					<span data-zh>在 <code>src/pages/index.astro</code> 編輯此頁面</span>
-				</li>
-				<li>
-					<span data-en>Edit the site header items in <code>src/components/Header.astro</code></span>
-					<span data-zh>在 <code>src/components/Header.astro</code> 修改網站導覽列</span>
-				</li>
-				<li>
-					<span data-en>Add your name to the footer in <code>src/components/Footer.astro</code></span>
-					<span data-zh>在 <code>src/components/Footer.astro</code> 加入你的名字</span>
-				</li>
-				<li>
-					<span data-en>Check out the included blog posts in <code>src/content/blog/</code></span>
-					<span data-zh>瀏覽 <code>src/content/blog/</code> 中的範例文章</span>
-				</li>
-				<li>
-					<span data-en>Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code></span>
-					<span data-zh>在 <code>src/layouts/BlogPost.astro</code> 自訂文章版型</span>
-				</li>
-			</ul>
-			<p>
-				<span data-en>
-					Have fun! If you get stuck, remember to <a href="https://docs.astro.build/">read the docs</a>
-					or <a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-				</span>
-				<span data-zh>
-					祝你使用愉快！遇到問題時，可以<a href="https://docs.astro.build/">查閱文件</a>或<a href="https://astro.build/chat">加入 Discord</a> 提問。
-				</span>
-			</p>
-			<p>
-				<span data-en>
-					Looking for a blog template with a bit more personality? Check out <a
-						href="https://github.com/Charca/astro-blog-template">astro-blog-template</a
-					> by <a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-				</span>
-				<span data-zh>
-					想找風格更豐富的部落格範本？試試 <a href="https://twitter.com/Charca">Maxi Ferreira</a> 製作的
-					<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a>。
-				</span>
+			</div>
+
+			<div class="links">
+				<a href="/blog" class="btn-primary">
+					<span data-en>Read the Blog</span>
+					<span data-zh>瀏覽文章</span>
+				</a>
+				<a href="/about" class="btn-secondary">
+					<span data-en>About Me</span>
+					<span data-zh>關於我</span>
+				</a>
+			</div>
+
+			<hr />
+
+			<p class="rebuild-note">
+				<span data-en>This is the 10th rebuild of this site — officially recorded. WOW.</span>
+				<span data-zh>這是我第 10 次（官方紀錄）重建這個網站 WOW。</span>
 			</p>
 		</main>
 		<Footer />
