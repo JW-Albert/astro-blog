@@ -1,0 +1,78 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE } from '../../consts';
+import { getAllTags } from '../../utils/tags';
+
+const tags = await getAllTags();
+const title = `Tags — ${SITE_TITLE}`;
+const description = 'Browse Albert Wang\'s technical posts by topic.';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={title} description={description} />
+		<style>
+			main {
+				width: var(--maxw);
+				max-width: calc(100% - 2em);
+			}
+			.page-head {
+				text-align: center;
+				margin-bottom: 2.5em;
+			}
+			.cloud {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.7em;
+				justify-content: center;
+			}
+			.cloud a {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4em;
+				padding: 0.55em 1.1em;
+				border-radius: 999px;
+				background: var(--accent-soft);
+				color: var(--accent-dark);
+				font-weight: 700;
+				text-decoration: none;
+				transition: background 0.15s, color 0.15s, transform 0.15s;
+			}
+			.cloud a:hover {
+				background: var(--accent);
+				color: #fff;
+				transform: translateY(-2px);
+			}
+			.cloud .count {
+				font-size: 0.78em;
+				opacity: 0.8;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="page-head">
+				<p class="eyebrow">Topics</p>
+				<h1><span data-en>Tags</span><span data-zh>標籤</span></h1>
+				<p>
+					<span data-en>Browse posts by topic.</span>
+					<span data-zh>依主題瀏覽文章。</span>
+				</p>
+			</div>
+			<div class="cloud">
+				{
+					tags.map((t) => (
+						<a href={`/tags/${t.slug}/`}>
+							#{t.tag} <span class="count">{t.count}</span>
+						</a>
+					))
+				}
+			</div>
+		</main>
+		<Footer />
+	</body>
+</html>

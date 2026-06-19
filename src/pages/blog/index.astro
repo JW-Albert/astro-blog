@@ -2,85 +2,75 @@
 import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
+import PostCard from '../../components/PostCard.astro';
+import { SITE_TITLE } from '../../consts';
 import { getCollection } from 'astro:content';
-import FormattedDate from '../../components/FormattedDate.astro';
+import { getAllTags } from '../../utils/tags';
 
 const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+const tags = await getAllTags();
+const title = `Blog — ${SITE_TITLE}`;
+const description =
+	"Technical notes by Albert Wang — Linux & Debian server setup, networking, data acquisition, and cloud/edge engineering.";
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<BaseHead title={title} description={description} />
 		<style>
 			main {
-				width: 960px;
+				width: var(--maxw-wide);
+				max-width: calc(100% - 2em);
 			}
-			ul {
+			.page-head {
+				text-align: center;
+				margin-bottom: 1.5em;
+			}
+			.page-head h1 {
+				margin-bottom: 0.3em;
+			}
+			.page-head p {
+				max-width: 560px;
+				margin: 0 auto;
+				color: rgb(var(--gray));
+			}
+			.tag-bar {
 				display: flex;
 				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
+				justify-content: center;
+				gap: 0.45em;
+				margin: 0 auto 2.5em;
+				max-width: 760px;
+			}
+			.tag-bar a {
+				font-size: 0.8rem;
+				font-weight: 600;
+				padding: 0.4em 0.8em;
+				border-radius: 999px;
+				background: var(--accent-soft);
+				color: var(--accent-dark);
+				text-decoration: none;
+				transition: background 0.15s, color 0.15s;
+			}
+			.tag-bar a:hover {
+				background: var(--accent);
+				color: #fff;
+			}
+			.posts {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 1.8em;
+				list-style: none;
 				margin: 0;
 				padding: 0;
 			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
-			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
 			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
+				.posts {
+					grid-template-columns: 1fr;
+					gap: 1.3em;
 				}
 			}
 		</style>
@@ -88,32 +78,27 @@ const posts = (await getCollection('blog')).sort(
 	<body>
 		<Header />
 		<main>
-			<section>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.id}/`}>
-									<img width={720} height={360} src={post.data.heroImage} alt="" />
-									<h4 class="title">
-										{post.data.titleZh ? (
-											<>
-												<span data-en>{post.data.title}</span>
-												<span data-zh>{post.data.titleZh}</span>
-											</>
-										) : (
-											post.data.title
-										)}
-									</h4>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-								</a>
-							</li>
-						))
-					}
-				</ul>
-			</section>
+			<div class="page-head">
+				<p class="eyebrow">Writing</p>
+				<h1><span data-en>Blog</span><span data-zh>文章</span></h1>
+				<p>
+					<span data-en
+						>Technical notes on Linux servers, networking, data acquisition, and
+						cloud/edge engineering.</span
+					>
+					<span data-zh
+						>關於 Linux 伺服器、網路、資料採集與雲端／邊緣工程的技術筆記。</span
+					>
+				</p>
+			</div>
+
+			<nav class="tag-bar" aria-label="Browse by tag">
+				{tags.map((t) => <a href={`/tags/${t.slug}/`}>#{t.tag} <span>({t.count})</span></a>)}
+			</nav>
+
+			<ul class="posts">
+				{posts.map((post) => <PostCard post={post} />)}
+			</ul>
 		</main>
 		<Footer />
 	</body>

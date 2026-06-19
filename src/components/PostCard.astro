@@ -1,0 +1,98 @@
+---
+import FormattedDate from './FormattedDate.astro';
+import TagList from './TagList.astro';
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+	post: CollectionEntry<'blog'>;
+}
+const { post } = Astro.props;
+const d = post.data;
+---
+<li class="post card">
+	<a href={`/blog/${post.id}/`}>
+		{d.heroImage && (
+			<img
+				class="thumb"
+				width={720}
+				height={360}
+				src={d.heroImage}
+				alt=""
+				loading="lazy"
+			/>
+		)}
+		<div class="body">
+			<p class="date"><FormattedDate date={d.pubDate} /></p>
+			<h2 class="title">
+				{d.titleZh ? (
+					<>
+						<span data-en>{d.title}</span>
+						<span data-zh>{d.titleZh}</span>
+					</>
+				) : (
+					d.title
+				)}
+			</h2>
+			{(d.description || d.descriptionZh) && (
+				<p class="excerpt">
+					<span data-en>{d.description}</span>
+					<span data-zh>{d.descriptionZh ?? d.description}</span>
+				</p>
+			)}
+		</div>
+	</a>
+	{d.tags && d.tags.length > 0 && (
+		<div class="card-tags">
+			<TagList tags={d.tags} />
+		</div>
+	)}
+</li>
+
+<style>
+	.post {
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+	}
+	.post > a {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		text-decoration: none;
+	}
+	.thumb {
+		width: 100%;
+		aspect-ratio: 2 / 1;
+		object-fit: cover;
+		border-radius: 0;
+		margin: 0;
+	}
+	.body {
+		padding: 1.1em 1.3em 0.9em;
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+	}
+	.date {
+		margin: 0 0 0.4em;
+		color: rgb(var(--gray));
+		font-size: 0.82rem;
+	}
+	.title {
+		margin: 0 0 0.5em;
+		font-size: 1.2rem;
+		line-height: 1.35;
+		color: rgb(var(--black));
+	}
+	.post > a:hover .title {
+		color: var(--accent-dark);
+	}
+	.excerpt {
+		margin: 0;
+		font-size: 0.9rem;
+		line-height: 1.6;
+		color: rgb(var(--gray-dark));
+	}
+	.card-tags {
+		padding: 0 1.3em 1.2em;
+	}
+</style>

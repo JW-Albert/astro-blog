@@ -1,0 +1,87 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import PostCard from '../../components/PostCard.astro';
+import { SITE_TITLE } from '../../consts';
+import { getCollection } from 'astro:content';
+import { getAllTags, tagSlug } from '../../utils/tags';
+
+export async function getStaticPaths() {
+	const posts = (await getCollection('blog')).sort(
+		(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+	);
+	const tags = await getAllTags();
+	return tags.map(({ tag, slug }) => ({
+		params: { tag: slug },
+		props: {
+			tag,
+			posts: posts.filter((p) =>
+				(p.data.tags ?? []).some((t) => tagSlug(t) === slug),
+			),
+		},
+	}));
+}
+
+const { tag, posts } = Astro.props;
+const title = `#${tag} — ${SITE_TITLE}`;
+const description = `Posts tagged ${tag}.`;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={title} description={description} />
+		<style>
+			main {
+				width: var(--maxw-wide);
+				max-width: calc(100% - 2em);
+			}
+			.page-head {
+				text-align: center;
+				margin-bottom: 2.5em;
+			}
+			.page-head h1 {
+				margin-bottom: 0.3em;
+			}
+			.back {
+				font-weight: 600;
+				font-size: 0.9rem;
+			}
+			.posts {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 1.8em;
+				list-style: none;
+				margin: 0;
+				padding: 0;
+			}
+			@media (max-width: 720px) {
+				.posts {
+					grid-template-columns: 1fr;
+					gap: 1.3em;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="page-head">
+				<p class="eyebrow">Tag</p>
+				<h1>#{tag}</h1>
+				<p>
+					<span data-en>{posts.length} post{posts.length === 1 ? '' : 's'} tagged <strong>{tag}</strong></span>
+					<span data-zh>共 {posts.length} 篇文章標記為 <strong>{tag}</strong></span>
+				</p>
+				<a class="back" href="/tags/">
+					<span data-en>← All tags</span><span data-zh>← 所有標籤</span>
+				</a>
+			</div>
+			<ul class="posts">
+				{posts.map((post) => <PostCard post={post} />)}
+			</ul>
+		</main>
+		<Footer />
+	</body>
+</html>

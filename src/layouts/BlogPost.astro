@@ -4,52 +4,71 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
+import TagList from '../components/TagList.astro';
 
 type Props = CollectionEntry<'blog'>['data'];
 
-const { title, titleZh, description, pubDate, updatedDate, heroImage } = Astro.props;
+const { title, titleZh, description, pubDate, updatedDate, heroImage, tags } = Astro.props;
 ---
 
 <html lang="en">
 	<head>
-		<BaseHead title={title} description={description} />
+		<BaseHead title={title} description={description} image={heroImage} />
 		<style>
 			main {
-				width: calc(100% - 2em);
+				width: 100%;
 				max-width: 100%;
 				margin: 0;
+				padding: 0 0 2em;
 			}
 			.hero-image {
 				width: 100%;
+				max-width: 960px;
+				margin: 2em auto 0;
+				padding: 0 1em;
 			}
 			.hero-image img {
 				display: block;
+				width: 100%;
 				margin: 0 auto;
-				border-radius: 12px;
+				border-radius: var(--radius);
 				box-shadow: var(--box-shadow);
+				aspect-ratio: 2 / 1;
+				object-fit: cover;
 			}
 			.prose {
-				width: 100%;
-				max-width: 1200px;
+				width: var(--maxw);
+				max-width: calc(100% - 2em);
 				margin: auto;
-				padding: 1em 3em;
+				padding: 1em 0;
 				color: rgb(var(--gray-dark));
 			}
 			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
+				margin-bottom: 1.5em;
+				padding: 1.5em 0 1em;
 				text-align: center;
-				line-height: 1;
 			}
 			.title h1 {
-				margin: 0 0 0.5em 0;
+				margin: 0 0 0.3em 0;
+				font-size: 2.4rem;
 			}
 			.date {
-				margin-bottom: 0.5em;
+				margin-bottom: 0.8em;
 				color: rgb(var(--gray));
+				font-size: 0.95rem;
 			}
 			.last-updated-on {
 				font-style: italic;
+			}
+			.back-link {
+				display: inline-block;
+				margin-bottom: 0.5em;
+				font-size: 0.9rem;
+				font-weight: 600;
+			}
+			.title :global(.post-tags) {
+				justify-content: center;
+				margin: 1em 0 0.2em;
 			}
 			:global(.code-block-wrapper) {
 				display: flex;
@@ -62,7 +81,7 @@ const { title, titleZh, description, pubDate, updatedDate, heroImage } = Astro.p
 			:global(.copy-btn-row) {
 				display: flex;
 				justify-content: flex-end;
-				background: rgb(var(--gray-dark));
+				background: var(--code-bg);
 				border-radius: 0 0 8px 8px;
 				padding: 0.5em 0.8em;
 				margin-bottom: 1.5em;
@@ -105,6 +124,9 @@ const { title, titleZh, description, pubDate, updatedDate, heroImage } = Astro.p
 				</div>
 				<div class="prose">
 					<div class="title">
+						<a href="/blog" class="back-link">
+							<span data-en>← All posts</span><span data-zh>← 所有文章</span>
+						</a>
 						<div class="date">
 							<FormattedDate date={pubDate} />
 							{
@@ -127,6 +149,7 @@ const { title, titleZh, description, pubDate, updatedDate, heroImage } = Astro.p
 								title
 							)}
 						</h1>
+						{tags && tags.length > 0 && <TagList tags={tags} class="post-tags" />}
 						<hr />
 					</div>
 					<slot />

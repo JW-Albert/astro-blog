@@ -1,0 +1,35 @@
+---
+import { tagSlug } from '../utils/tags';
+interface Props {
+	tags: string[];
+	class?: string;
+}
+const { tags, class: className } = Astro.props;
+---
+{
+	tags && tags.length > 0 && (
+		<div class:list={['tag-list', className]}>
+			{tags.map((t) => (
+				<a class="tag" href={`/tags/${tagSlug(t)}/`}>
+					#{t}
+				</a>
+			))}
+		</div>
+	)
+}
+<style>
+	.tag-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45em;
+	}
+	.tag-list :global(.tag) {
+		text-decoration: none;
+		transition: background 0.15s, color 0.15s, transform 0.15s;
+	}
+	.tag-list :global(.tag:hover) {
+		background: var(--accent);
+		color: #fff;
+		transform: translateY(-1px);
+	}
+</style>
