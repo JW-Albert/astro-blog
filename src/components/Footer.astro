@@ -3,7 +3,6 @@ const today = new Date();
 ---
 
 <footer>
-	&copy; {today.getFullYear()} Albert Wang. All rights reserved.
 	<div class="social-links">
 		<a href="https://www.instagram.com/_albert_wang_/" target="_blank">
 			<span class="sr-only">Follow on Instagram</span>
@@ -33,25 +32,39 @@ const today = new Date();
 			>
 		</a>
 	</div>
+	<p class="copyright">
+		&copy; {today.getFullYear()} Albert Wang ·
+		<span data-en>Built with Astro, deployed on Cloudflare</span>
+		<span data-zh>使用 Astro 打造，部署於 Cloudflare</span>
+	</p>
 </footer>
 <style>
 	footer {
-		padding: 1em 1em 1em 1em;
-		background: linear-gradient(var(--gray-gradient)) no-repeat;
+		flex-shrink: 0;
+		padding: 2.5em 1em 2em;
+		margin-top: 3em;
+		border-top: 1px solid rgb(var(--border));
+		background: var(--accent-soft);
 		color: rgb(var(--gray));
 		text-align: center;
 	}
 	.social-links {
 		display: flex;
 		justify-content: center;
-		gap: 1em;
-		margin-top: 1em;
+		gap: 1.25em;
+		margin-bottom: 1em;
 	}
 	.social-links a {
 		text-decoration: none;
 		color: rgb(var(--gray));
+		transition: color 0.15s, transform 0.15s;
 	}
 	.social-links a:hover {
-		color: rgb(var(--gray-dark));
+		color: var(--accent-dark);
+		transform: translateY(-2px);
+	}
+	.copyright {
+		margin: 0;
+		font-size: 0.9rem;
 	}
 </style>

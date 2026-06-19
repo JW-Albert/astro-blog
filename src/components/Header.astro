@@ -1,66 +1,100 @@
 ---
 import HeaderLink from './HeaderLink.astro';
 import LangToggle from './LangToggle.astro';
+import ThemeToggle from './ThemeToggle.astro';
 import { SITE_TITLE } from '../consts';
 ---
 
 <header>
-	<nav>
-		<h2><a href="/">{SITE_TITLE}</a></h2>
+	<nav class="container">
+		<a href="/" class="brand">{SITE_TITLE}</a>
 		<div class="internal-links">
 			<HeaderLink href="/"><span data-en>Home</span><span data-zh>首頁</span></HeaderLink>
 			<HeaderLink href="/blog"><span data-en>Blog</span><span data-zh>文章</span></HeaderLink>
+			<HeaderLink href="/projects"><span data-en>Projects</span><span data-zh>作品</span></HeaderLink>
 			<HeaderLink href="/about"><span data-en>About</span><span data-zh>關於</span></HeaderLink>
 		</div>
 		<div class="right-controls">
+			<ThemeToggle />
 			<LangToggle />
 		</div>
 	</nav>
 </header>
 <style>
 	header {
-		margin: 0;
-		padding: 0 1em;
-		background: white;
-		box-shadow: 0 2px 8px rgba(var(--black), 5%);
-	}
-	h2 {
-		margin: 0;
-		font-size: 1em;
-	}
-
-	h2 a,
-	h2 a.active {
-		text-decoration: none;
+		position: sticky;
+		top: 0;
+		z-index: 50;
+		background: var(--header-bg);
+		backdrop-filter: saturate(180%) blur(10px);
+		-webkit-backdrop-filter: saturate(180%) blur(10px);
+		border-bottom: 1px solid rgb(var(--border));
 	}
 	nav {
 		display: flex;
 		align-items: center;
+		gap: 1em;
+		padding: 0.6em 1em;
 	}
-	nav h2 {
+	.brand {
 		flex: 1;
+		font-size: 1.25rem;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		color: rgb(var(--black));
+		text-decoration: none;
+	}
+	.brand:hover {
+		color: var(--accent);
+		text-decoration: none;
 	}
 	.internal-links {
 		display: flex;
+		gap: 0.25em;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+	.internal-links :global(a) {
+		padding: 0.4em 0.7em;
+		color: rgb(var(--gray-dark));
+		border-radius: 999px;
+		font-weight: 600;
+		font-size: 0.95rem;
+		transition: background 0.15s, color 0.15s;
+	}
+	.internal-links :global(a:hover) {
+		background: var(--accent-soft);
+		color: var(--accent-dark);
+		text-decoration: none;
+	}
+	.internal-links :global(a.active) {
+		color: var(--accent-dark);
+		background: var(--accent-soft);
+		text-decoration: none;
+		font-weight: 700;
 	}
 	.right-controls {
 		flex: 1;
 		display: flex;
-		justify-content: flex-end;
-	}
-	nav a {
-		padding: 1em 0.5em;
-		color: var(--black);
-		border-bottom: 4px solid transparent;
-		text-decoration: none;
-	}
-	nav a.active {
-		text-decoration: none;
-		border-bottom-color: var(--accent);
-	}
-	.right-controls {
-		display: flex;
 		align-items: center;
+		justify-content: flex-end;
 		gap: 0.5em;
+	}
+	@media (max-width: 720px) {
+		nav {
+			flex-wrap: wrap;
+			gap: 0.5em;
+			justify-content: center;
+		}
+		.brand {
+			flex: 0 0 auto;
+		}
+		.right-controls {
+			flex: 0 0 auto;
+		}
+		.internal-links {
+			order: 3;
+			flex-basis: 100%;
+		}
 	}
 </style>

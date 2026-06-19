@@ -14,13 +14,26 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const { title, description, image = '/blog-placeholder-1.jpg' } = Astro.props;
 ---
 
-<!-- Language initialisation: apply stored preference before first paint -->
+<!-- Language + theme initialisation: apply stored preferences before first paint -->
 <script is:inline>
 	(function () {
+		var d = document.documentElement;
 		var lang = localStorage.getItem('lang');
-		if (lang === 'zh-TW' || lang === 'en') {
-			document.documentElement.lang = lang;
+		if (lang !== 'zh-TW' && lang !== 'en') {
+			// No saved choice yet → detect from the browser's preferred language.
+			var nav = (navigator.languages && navigator.languages[0]) || navigator.language || 'en';
+			lang = nav.toLowerCase().indexOf('zh') === 0 ? 'zh-TW' : 'en';
 		}
+		d.lang = lang;
+		var theme = localStorage.getItem('theme');
+		if (theme !== 'light' && theme !== 'dark') {
+			theme =
+				window.matchMedia &&
+				window.matchMedia('(prefers-color-scheme: dark)').matches
+					? 'dark'
+					: 'light';
+		}
+		d.dataset.theme = theme;
 	})();
 </script>
 
@@ -28,6 +41,7 @@ const { title, description, image = '/blog-placeholder-1.jpg' } = Astro.props;
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta name="theme-color" content="#ed5a1a" />
 <meta name="generator" content={Astro.generator} />
 
 <!-- Font preloads -->
