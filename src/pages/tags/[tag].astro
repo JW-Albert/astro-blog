@@ -6,6 +6,7 @@ import PostCard from '../../components/PostCard.astro';
 import { SITE_TITLE } from '../../consts';
 import { getCollection } from 'astro:content';
 import { getAllTags, tagSlug } from '../../utils/tags';
+import { localizedHref } from '../../utils/i18n';
 
 export async function getStaticPaths() {
 	const posts = (await getCollection('blog')).sort(
@@ -29,7 +30,7 @@ const description = `Posts tagged ${tag}.`;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={Astro.currentLocale === 'zh' ? 'zh-TW' : 'en'}>
 	<head>
 		<BaseHead title={title} description={description} />
 		<style>
@@ -74,7 +75,7 @@ const description = `Posts tagged ${tag}.`;
 					<span data-en>{posts.length} post{posts.length === 1 ? '' : 's'} tagged <strong>{tag}</strong></span>
 					<span data-zh>共 {posts.length} 篇文章標記為 <strong>{tag}</strong></span>
 				</p>
-				<a class="back" href="/tags/">
+				<a class="back" href={localizedHref(Astro.currentLocale, '/tags/')}>
 					<span data-en>← All tags</span><span data-zh>← 所有標籤</span>
 				</a>
 			</div>

@@ -3,11 +3,13 @@ import HeaderLink from './HeaderLink.astro';
 import LangToggle from './LangToggle.astro';
 import ThemeToggle from './ThemeToggle.astro';
 import { SITE_TITLE } from '../consts';
+import { localizedHref } from '../utils/i18n';
+const homeHref = localizedHref(Astro.currentLocale, '/');
 ---
 
 <header>
 	<nav class="container">
-		<a href="/" class="brand">{SITE_TITLE}</a>
+		<a href={homeHref} class="brand">{SITE_TITLE}</a>
 		<div class="internal-links">
 			<HeaderLink href="/"><span data-en>Home</span><span data-zh>首頁</span></HeaderLink>
 			<HeaderLink href="/blog"><span data-en>Blog</span><span data-zh>文章</span></HeaderLink>

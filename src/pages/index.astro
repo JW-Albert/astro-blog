@@ -6,15 +6,17 @@ import ProjectCard from '../components/ProjectCard.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 import { featuredProjects, GITHUB_URL } from '../data/projects';
+import { localizedHref } from '../utils/i18n';
 import { getCollection } from 'astro:content';
 
 const latestPosts = (await getCollection('blog'))
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 	.slice(0, 3);
+const L = (p: string) => localizedHref(Astro.currentLocale, p);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={Astro.currentLocale === 'zh' ? 'zh-TW' : 'en'}>
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 		<style>
@@ -184,10 +186,10 @@ const latestPosts = (await getCollection('blog'))
 					</div>
 				</div>
 				<div class="cta">
-					<a href="/projects" class="btn btn-primary">
+					<a href={L('/projects')} class="btn btn-primary">
 						<span data-en>View Projects</span><span data-zh>瀏覽作品</span>
 					</a>
-					<a href="/blog" class="btn btn-secondary">
+					<a href={L('/blog')} class="btn btn-secondary">
 						<span data-en>Read the Blog</span><span data-zh>閱讀文章</span>
 					</a>
 				</div>
@@ -213,7 +215,7 @@ const latestPosts = (await getCollection('blog'))
 					<h2>
 						<span data-en>Featured Projects</span><span data-zh>精選作品</span>
 					</h2>
-					<a class="see-all" href="/projects">
+					<a class="see-all" href={L('/projects')}>
 						<span data-en>All projects →</span><span data-zh>所有作品 →</span>
 					</a>
 				</div>
@@ -228,14 +230,14 @@ const latestPosts = (await getCollection('blog'))
 					<h2>
 						<span data-en>Latest Posts</span><span data-zh>最新文章</span>
 					</h2>
-					<a class="see-all" href="/blog">
+					<a class="see-all" href={L('/blog')}>
 						<span data-en>All posts →</span><span data-zh>所有文章 →</span>
 					</a>
 				</div>
 				<div class="post-list">
 					{
 						latestPosts.map((post) => (
-							<a class="post-row" href={`/blog/${post.id}/`}>
+							<a class="post-row" href={L(`/blog/${post.id}/`)}>
 								<span class="pdate">
 									<FormattedDate date={post.data.pubDate} />
 								</span>

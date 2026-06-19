@@ -1,19 +1,28 @@
-<button id="lang-toggle" aria-label="Toggle language / 切換語言">
+---
+import { altLocaleHref } from '../utils/i18n';
+const altHref = altLocaleHref(Astro.currentLocale, Astro.url.pathname);
+const targetLang = Astro.currentLocale === 'zh' ? 'en' : 'zh-TW';
+---
+<a
+	id="lang-toggle"
+	href={altHref}
+	hreflang={targetLang}
+	data-target={targetLang}
+	aria-label="Switch language / 切換語言"
+>
 	<span data-en>中文</span><span data-zh>EN</span>
-</button>
+</a>
 
 <script>
-	const html = document.documentElement;
-
-	document.getElementById('lang-toggle')!.addEventListener('click', () => {
-		const next = html.lang === 'zh-TW' ? 'en' : 'zh-TW';
-		html.lang = next;
-		localStorage.setItem('lang', next);
+	// Remember the explicit choice so the redirect in BaseHead respects it.
+	const el = document.getElementById('lang-toggle');
+	el?.addEventListener('click', () => {
+		localStorage.setItem('lang', el.getAttribute('data-target') || 'en');
 	});
 </script>
 
 <style>
-	button {
+	a {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -21,17 +30,19 @@
 		font-size: 0.85em;
 		font-family: inherit;
 		font-weight: 700;
-		color: var(--accent);
+		color: var(--accent-dark);
 		background: transparent;
 		border: 2px solid var(--accent);
 		border-radius: 999px;
 		cursor: pointer;
 		line-height: 1;
+		text-decoration: none;
 		transition: background 0.15s, color 0.15s;
 		white-space: nowrap;
 	}
-	button:hover {
+	a:hover {
 		background: var(--accent);
-		color: white;
+		color: #fff;
+		text-decoration: none;
 	}
 </style>

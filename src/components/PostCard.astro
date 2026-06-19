@@ -1,15 +1,17 @@
 ---
 import FormattedDate from './FormattedDate.astro';
 import TagList from './TagList.astro';
+import { localizedHref } from '../utils/i18n';
 import type { CollectionEntry } from 'astro:content';
 interface Props {
 	post: CollectionEntry<'blog'>;
 }
 const { post } = Astro.props;
 const d = post.data;
+const href = localizedHref(Astro.currentLocale, `/blog/${post.id}/`);
 ---
 <li class="post card">
-	<a href={`/blog/${post.id}/`}>
+	<a href={href}>
 		{d.heroImage && (
 			<img
 				class="thumb"

@@ -16,7 +16,7 @@ const description =
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={Astro.currentLocale === 'zh' ? 'zh-TW' : 'en'}>
 	<head>
 		<BaseHead title={title} description={description} />
 		<style>

@@ -4,6 +4,7 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { SITE_TITLE } from '../../consts';
 import { getAllTags } from '../../utils/tags';
+import { localizedHref } from '../../utils/i18n';
 
 const tags = await getAllTags();
 const title = `Tags — ${SITE_TITLE}`;
@@ -11,7 +12,7 @@ const description = 'Browse Albert Wang\'s technical posts by topic.';
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={Astro.currentLocale === 'zh' ? 'zh-TW' : 'en'}>
 	<head>
 		<BaseHead title={title} description={description} />
 		<style>
@@ -66,7 +67,7 @@ const description = 'Browse Albert Wang\'s technical posts by topic.';
 			<div class="cloud">
 				{
 					tags.map((t) => (
-						<a href={`/tags/${t.slug}/`}>
+						<a href={localizedHref(Astro.currentLocale, `/tags/${t.slug}/`)}>
 							#{t.tag} <span class="count">{t.count}</span>
 						</a>
 					))

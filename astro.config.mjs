@@ -8,6 +8,17 @@ import cloudflare from "@astrojs/cloudflare";
 // https://astro.build/config
 export default defineConfig({
 	site: "https://blog.jw-albert.dev",
+	i18n: {
+		locales: ["en", "zh"],
+		defaultLocale: "en",
+		routing: {
+			prefixDefaultLocale: false,
+			fallbackType: "rewrite",
+		},
+		fallback: {
+			zh: "en",
+		},
+	},
 	integrations: [mdx(), sitemap()],
 	adapter: cloudflare({
 		platformProxy: {

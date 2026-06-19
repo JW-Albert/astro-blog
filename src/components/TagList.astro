@@ -1,16 +1,18 @@
 ---
 import { tagSlug } from '../utils/tags';
+import { localizedHref } from '../utils/i18n';
 interface Props {
 	tags: string[];
 	class?: string;
 }
 const { tags, class: className } = Astro.props;
+const cl = Astro.currentLocale;
 ---
 {
 	tags && tags.length > 0 && (
 		<div class:list={['tag-list', className]}>
 			{tags.map((t) => (
-				<a class="tag" href={`/tags/${tagSlug(t)}/`}>
+				<a class="tag" href={localizedHref(cl, `/tags/${tagSlug(t)}/`)}>
 					#{t}
 				</a>
 			))}
