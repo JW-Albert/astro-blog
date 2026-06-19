@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" font-family="Inter, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1c1813"/>
+      <stop offset="1" stop-color="#2a1c11"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff7a3c"/>
+      <stop offset="1" stop-color="#ed5a1a"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-50%" width="140%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="600" fill="url(#bg)"/>
+
+  <!-- grid -->
+  <g stroke="#ffffff" stroke-opacity="0.05" stroke-width="1">
+    <line x1="0" y1="150" x2="1200" y2="150"/>
+    <line x1="0" y1="300" x2="1200" y2="300"/>
+    <line x1="0" y1="450" x2="1200" y2="450"/>
+    <line x1="200" y1="0" x2="200" y2="600"/>
+    <line x1="400" y1="0" x2="400" y2="600"/>
+    <line x1="600" y1="0" x2="600" y2="600"/>
+    <line x1="800" y1="0" x2="800" y2="600"/>
+    <line x1="1000" y1="0" x2="1000" y2="600"/>
+  </g>
+
+  <!-- secondary wave -->
+  <path d="M0 320 C 80 220, 160 420, 240 320 S 400 220, 480 320 S 640 420, 720 320 S 880 220, 960 320 S 1120 420, 1200 320"
+        fill="none" stroke="#6fb7c9" stroke-opacity="0.5" stroke-width="3"/>
+
+  <!-- primary vibration wave -->
+  <path d="M0 300 C 60 120, 120 480, 180 300 S 300 120, 360 300 S 480 480, 540 300 S 660 120, 720 300 S 840 480, 900 300 S 1020 120, 1080 300 S 1200 460, 1200 300"
+        fill="none" stroke="url(#wave)" stroke-width="5" stroke-linecap="round" filter="url(#glow)"/>
+
+  <!-- sample points -->
+  <g fill="#ff7a3c">
+    <circle cx="180" cy="300" r="6"/><circle cx="360" cy="300" r="6"/>
+    <circle cx="540" cy="300" r="6"/><circle cx="720" cy="300" r="6"/>
+    <circle cx="900" cy="300" r="6"/><circle cx="1080" cy="300" r="6"/>
+  </g>
+
+  <!-- labels -->
+  <text x="70" y="92" fill="#ffffff" font-size="26" font-weight="700" letter-spacing="3" opacity="0.9">PRISVALIS</text>
+  <text x="70" y="520" fill="#ff8a4f" font-size="40" font-weight="800" letter-spacing="1">Real-Time Vibration DAQ</text>
+  <text x="70" y="556" fill="#ffffff" font-size="20" opacity="0.55">Modbus RTU · Flask · Chart.js · 5-thread pipeline</text>
+</svg>

@@ -1,0 +1,223 @@
+---
+title: "Building a Real-Time Vibration DAQ Dashboard in Python"
+titleZh: "用 Python 打造即時振動資料採集儀表板"
+description: "How I built a browser-based vibration data-acquisition system with a five-thread, queue-driven Python architecture — reading Modbus RTU at high rates while keeping the UI smooth."
+descriptionZh: "如何以五執行緒、佇列驅動的 Python 架構打造瀏覽器端振動資料採集系統 ── 在高速讀取 Modbus RTU 的同時，維持介面流暢。"
+pubDate: "Jun 20 2026"
+heroImage: "/blog-daq-dashboard.svg"
+tags: ["Python", "DAQ", "Flask", "Architecture"]
+---
+
+<div data-en>
+
+When you work on **Predictive Health Management (PHM)**, the very first problem you hit isn't the machine learning — it's getting clean, continuous data off the sensor in the first place. Vibration sensors sample fast, the hardware speaks an industrial protocol, and a human still needs to *see* what's happening in real time without the browser grinding to a halt.
+
+This post walks through the design of **[ProWaveDAQ-Python-Visualization-Unit](https://github.com/JW-Albert/ProWaveDAQ-Python-Visualization-Unit)** — a system that reads vibration data from a **PW-RVT** sensor over **Modbus RTU**, streams it live to a browser chart, and simultaneously archives it to CSV and (optionally) a SQL database. Everything is controlled from a web page, so an operator never has to touch a terminal.
+
+## The core tension: sampling rate vs. rendering rate
+
+A vibration sensor can produce **thousands of samples per second** per channel. A browser, on the other hand, is happy to repaint a line chart maybe 10–20 times a second. If you naively push every raw sample to the front end, two things happen:
+
+1. The WebSocket / HTTP payload explodes.
+2. Chart.js spends all its time drawing points no human eye can resolve.
+
+So the architecture has to do two jobs at once: **capture every sample faithfully for storage**, while **throwing most of them away for display**. The trick is to separate those two paths cleanly.
+
+## System overview
+
+The whole thing is a single Python process exposing a Flask web UI. From the browser you can:
+
+- Edit the config files (`ProWaveDAQ.ini`, `csv.ini`, `sql.ini`) through fixed input fields — no free-text editing, so you can't accidentally delete a parameter.
+- Enter a **data label** for the run.
+- Toggle optional SQL upload.
+- Press **Start** to begin acquisition and live plotting, and **Stop** to flush and exit safely.
+
+## A five-thread architecture
+
+The heart of the design is a set of **five independent threads**, each with one job, communicating only through thread-safe queues:
+
+| Thread | Responsibility |
+|--------|----------------|
+| **Flask** | Serves the UI and the live-data endpoint |
+| **DAQ Reading** | Polls the sensor over Modbus RTU as fast as it can |
+| **Collection** | Fans raw samples out to the storage and display paths |
+| **CSV Writer** | Buffers and writes samples to disk in time-sliced files |
+| **SQL Writer** | Uploads batches to MySQL / MariaDB (optional) |
+
+Why threads and not one big loop? Because each stage has a wildly different rhythm. The DAQ thread must never block waiting for a slow disk write or a network hiccup, or you'll drop samples. Decoupling the producer from the consumers with queues means a momentary stall in the SQL upload can't corrupt the acquisition timing.
+
+```python
+import queue, threading
+
+raw_queue = queue.Queue()        # every sample, for storage
+web_data_queue = queue.Queue()   # downsampled, for the browser
+
+def daq_reading(client, stop_event):
+    while not stop_event.is_set():
+        # FC04: read the full input-register packet per the device manual
+        frame = client.read_input_registers(addr, count)
+        raw_queue.put(decode(frame))
+```
+
+The `Queue` objects do all the heavy lifting of synchronization for us — no manual locks, no race conditions on the shared buffers.
+
+## Downsampling for the browser
+
+The display path subscribes to the same stream but keeps only **1 in every 50 samples** (a 50:1 ratio). That single decision is what keeps the dashboard responsive under load:
+
+```python
+DECIMATION = 50
+
+def collection(stop_event):
+    i = 0
+    while not stop_event.is_set():
+        sample = raw_queue.get()
+        # Storage path: keep everything
+        csv_queue.put(sample)
+        # Display path: keep a thin slice
+        if i % DECIMATION == 0:
+            web_data_queue.put(sample)
+        i += 1
+```
+
+The browser still sees a faithful *shape* of the waveform — just with far fewer points to draw and transfer.
+
+## Keeping the chart smooth
+
+On the front end, the trick is to **never re-render the whole dataset**. Each poll only appends the new points and trims the oldest ones, holding a fixed 500-point window. Animations are disabled, because a moving chart that re-tweens every frame is the enemy of a real-time view.
+
+```js
+// Pull only the new points, append, and slide the window
+async function tick() {
+  const points = await fetch('/data').then(r => r.json());
+  const ds = chart.data.datasets[0].data;
+  ds.push(...points);
+  if (ds.length > 500) ds.splice(0, ds.length - 500);
+  chart.update('none'); // 'none' = no animation
+}
+setInterval(tick, 100); // 10 fps is plenty for the human eye
+```
+
+Updating every **100 ms** with animation off gives a stable ~10 fps view that feels instant without burning CPU.
+
+## Durable storage underneath
+
+While the browser shows its thin slice, the **CSV Writer** is quietly persisting *every* sample. It writes through a large buffer and slices files by a configurable number of seconds (from `csv.ini`), so each file lands on a clean sample boundary — important when you later feed those windows into a PHM model. The optional **SQL Writer** batches the same data up to MySQL/MariaDB for centralized analysis.
+
+## Takeaways
+
+- **Separate the storage path from the display path.** They have different requirements; don't let one constrain the other.
+- **Queues beat locks.** A producer/consumer model with `queue.Queue` removes a whole class of concurrency bugs.
+- **Downsample at the source.** The cheapest point to drop data is before it ever leaves the process.
+- **Trim, don't redraw.** A fixed-window, animation-free chart is the difference between "real-time" and "frozen tab".
+
+The same skeleton — fast producer, decoupling queues, a thin display path, durable storage — has carried over to the [PET-7H24M (TCP/IP) variant](https://github.com/JW-Albert/ICP-DAS_PET-7H24M_Python-Visualization-Unit) and the [AWS Greengrass edge component](https://github.com/JW-Albert/aws_ggc-daq-NIDAQ-python). Once you get the data plumbing right, everything downstream gets easier.
+
+</div>
+
+<div data-zh>
+
+當你投入 **預測性健康管理（PHM）** 時，第一個遇到的問題往往不是機器學習，而是「如何把乾淨、連續的資料從感測器穩定地讀出來」。振動感測器的取樣速率很高、硬體使用工業通訊協定，而人還是得在不讓瀏覽器卡死的前提下，**即時看到** 正在發生的事。
+
+這篇文章將拆解 **[ProWaveDAQ-Python-Visualization-Unit](https://github.com/JW-Albert/ProWaveDAQ-Python-Visualization-Unit)** 的設計 ── 一套透過 **Modbus RTU** 從 **PW-RVT** 感測器讀取振動資料、即時串流到瀏覽器繪圖，同時自動存成 CSV 並（選用）上傳 SQL 資料庫的系統。所有操作都在網頁上完成，操作者完全不需要碰終端機。
+
+## 核心矛盾：取樣率 vs. 繪圖率
+
+一顆振動感測器每個通道每秒可以產出 **數千筆樣本**；而瀏覽器大概一秒重繪折線圖 10～20 次就很滿足了。如果你天真地把每一筆原始樣本都丟給前端，會發生兩件事：
+
+1. 傳輸的封包量暴增。
+2. Chart.js 把時間全花在畫人眼根本分辨不出來的點上。
+
+所以這套架構必須同時做兩件事：**為了儲存，忠實保留每一筆樣本**；同時 **為了顯示，丟掉其中絕大多數**。關鍵在於把這兩條路徑乾淨地切開。
+
+## 系統概觀
+
+整套系統是一個 Python 行程，對外提供 Flask 網頁介面。從瀏覽器你可以：
+
+- 透過固定的輸入欄位編輯設定檔（`ProWaveDAQ.ini`、`csv.ini`、`sql.ini`）── 不開放自由文字編輯，避免不小心刪掉參數。
+- 為這次採集輸入一個 **資料標籤（Label）**。
+- 開關選用的 SQL 上傳功能。
+- 按下 **開始** 啟動採集與即時繪圖，按下 **停止** 則會安全地把剩餘資料寫完再結束。
+
+## 五執行緒架構
+
+設計的核心是 **五條各司其職的獨立執行緒**，彼此只透過執行緒安全的佇列溝通：
+
+| 執行緒 | 職責 |
+|--------|------|
+| **Flask** | 提供網頁介面與即時資料端點 |
+| **DAQ Reading** | 以最快速度透過 Modbus RTU 輪詢感測器 |
+| **Collection** | 把原始樣本分流到「儲存」與「顯示」兩條路徑 |
+| **CSV Writer** | 緩衝並依時間切片寫入磁碟 |
+| **SQL Writer** | 批次上傳至 MySQL / MariaDB（選用） |
+
+為什麼用多執行緒，而不是一個大迴圈？因為每個階段的節奏天差地遠。DAQ 執行緒絕不能因為等待緩慢的磁碟寫入或網路抖動而被卡住，否則就會漏樣本。用佇列把生產者與消費者解耦後，SQL 上傳一時卡頓也不會破壞採集的時序。
+
+```python
+import queue, threading
+
+raw_queue = queue.Queue()        # 每一筆樣本，供儲存
+web_data_queue = queue.Queue()   # 降頻後，供瀏覽器顯示
+
+def daq_reading(client, stop_event):
+    while not stop_event.is_set():
+        # FC04：依裝置手冊讀取完整的 input register 封包
+        frame = client.read_input_registers(addr, count)
+        raw_queue.put(decode(frame))
+```
+
+`Queue` 幫我們處理掉所有同步的麻煩 ── 不需要手動上鎖，也不會有共享緩衝區的競爭條件。
+
+## 為瀏覽器降頻
+
+顯示路徑訂閱同一份資料流，但 **每 50 筆只保留 1 筆**（50:1）。正是這個決定，讓儀表板在高負載下依然流暢：
+
+```python
+DECIMATION = 50
+
+def collection(stop_event):
+    i = 0
+    while not stop_event.is_set():
+        sample = raw_queue.get()
+        # 儲存路徑：全部保留
+        csv_queue.put(sample)
+        # 顯示路徑：只取薄薄一層
+        if i % DECIMATION == 0:
+            web_data_queue.put(sample)
+        i += 1
+```
+
+瀏覽器看到的波形 **形狀** 依然忠實 ── 只是要畫、要傳的點少了非常多。
+
+## 讓圖表保持流暢
+
+在前端，訣竅是 **絕不重繪整份資料**。每次輪詢只把新的點接上去、把最舊的點去掉，維持固定的 500 點視窗。動畫要關掉，因為一張每一幀都在補間的圖表，正是即時視圖的大敵。
+
+```js
+// 只取新的點，接上去，並滑動視窗
+async function tick() {
+  const points = await fetch('/data').then(r => r.json());
+  const ds = chart.data.datasets[0].data;
+  ds.push(...points);
+  if (ds.length > 500) ds.splice(0, ds.length - 500);
+  chart.update('none'); // 'none' = 不做動畫
+}
+setInterval(tick, 100); // 對人眼來說 10 fps 已綽綽有餘
+```
+
+每 **100 毫秒** 更新一次、並關閉動畫，就能得到穩定的約 10 fps 視圖，既即時又不吃 CPU。
+
+## 底層的可靠儲存
+
+當瀏覽器只顯示那薄薄一層時，**CSV Writer** 正默默地把 **每一筆** 樣本寫進磁碟。它透過大型緩衝區寫入，並依設定（`csv.ini`）的秒數切檔，讓每個檔案都落在乾淨的樣本邊界上 ── 這在你日後把這些視窗餵進 PHM 模型時非常重要。選用的 **SQL Writer** 則把相同的資料批次上傳到 MySQL/MariaDB，供集中分析。
+
+## 心得
+
+- **把儲存路徑與顯示路徑分開。** 兩者需求不同，別讓一邊綁住另一邊。
+- **佇列勝過鎖。** 以 `queue.Queue` 實作生產者／消費者，能一次消滅一整類並行錯誤。
+- **在源頭就降頻。** 丟資料最便宜的時機，是在它離開行程之前。
+- **用滑動而非重繪。** 固定視窗、無動畫的圖表，是「即時」與「凍結分頁」之間的分水嶺。
+
+同一套骨架 ── 高速生產者、解耦佇列、輕薄的顯示路徑、可靠的儲存 ── 後來也延續到了 [PET-7H24M（TCP/IP）版本](https://github.com/JW-Albert/ICP-DAS_PET-7H24M_Python-Visualization-Unit) 與 [AWS Greengrass 邊緣元件](https://github.com/JW-Albert/aws_ggc-daq-NIDAQ-python)。一旦把資料的管路搭對了，後面的一切都會變得輕鬆。
+
+</div>

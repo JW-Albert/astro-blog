@@ -1,0 +1,219 @@
+---
+title: "From if-else to Design Patterns: Architecting a Vehicle Management System"
+titleZh: "從 if-else 到設計模式：架構一套公司車輛管理系統"
+description: "How our team built a Corporate Vehicle Management System on Spring Boot 3 and Vue 3 — leaning on the State, Strategy, Factory, Template Method, Adapter, and Observer patterns to keep the domain clean and testable."
+descriptionZh: "我們如何以 Spring Boot 3 與 Vue 3 打造公司車輛管理系統 ── 運用 State、Strategy、Factory、Template Method、Adapter 與 Observer 等設計模式，讓領域邏輯保持乾淨、可測試。"
+pubDate: "Jun 18 2026"
+heroImage: "/blog-fcu-framework.svg"
+tags: ["Java", "Spring Boot", "Architecture", "Design Patterns", "Vue"]
+---
+
+<div data-en>
+
+For our **Software Framework Design** final project at Feng Chia University, my teammate and I built a **Corporate Vehicle Management System** — a platform for employees to request company vehicles, and for managers to approve, dispatch, and track them through maintenance. I owned the **system architecture, the application of OOD principles, and the backend API**; my teammate built the Vue 3 frontend and the database layer.
+
+The interesting part of this project wasn't the CRUD — it was using it as an excuse to apply **SOLID, the Law of Demeter, and six GoF design patterns** the way they're meant to be used: not for their own sake, but to make a genuinely messy domain stay readable as it grows. This post is a tour of the decisions that mattered.
+
+## The stack
+
+| Layer | Choice |
+|-------|--------|
+| Backend | Spring Boot 3.3.4 |
+| Security | Spring Security + JJWT (stateless JWT, BCrypt) |
+| Persistence | PostgreSQL + Spring Data JPA, Flyway migrations |
+| Frontend | Vue 3 + TypeScript, Pinia, Vite |
+
+## Layered architecture, and why the domain owns its interfaces
+
+The backend is split into clear layers — **Presentation → Service → Domain → Repository Interface → Infrastructure** — but the layer that earns its keep is the **Repository Interface** boundary. Following the **Dependency Inversion Principle**, the domain and service layers depend only on interfaces *they* define; the JPA-backed implementations live out in infrastructure and depend inward.
+
+```java
+// Domain owns the contract it needs
+public interface IBorrowingRepository {
+    BorrowingRequest save(BorrowingRequest request);
+    Optional<BorrowingRequest> findById(Long id);
+    List<BorrowingRequest> findOverlapping(Long vehicleId, Instant start, Instant end);
+}
+```
+
+That one inversion buys two concrete wins: the service layer is testable with a tiny **in-memory repository** (no database, no Spring context), and swapping persistence later never touches the domain. The JPA classes plug in through the **Adapter pattern** — more on that below.
+
+## The centrepiece: the State pattern
+
+A borrowing request moves through a strict lifecycle:
+
+```
+PENDING ──approve──▶ APPROVED ──startUse──▶ IN_USE ──complete──▶ RETURNED
+   │
+   └────reject────▶ REJECTED
+```
+
+Each state allows only certain transitions. The naive version of this is a swamp of `if (status.equals("PENDING")) … else if …` checks scattered across the service layer — and every new rule makes it worse. Instead, the request (the **Context**) holds a `BorrowingState`, and each concrete state encapsulates exactly the transitions it permits.
+
+```java
+// Context — delegates every action to the current state
+public class BorrowingRequest {
+    private BorrowingState state = new PendingState();
+
+    public void approve(String note)   { state.approve(this, note); }
+    public void reject(String note)    { state.reject(this, note); }
+    public void startUse()             { state.startUse(this); }
+    public void complete(int mileage)  { state.complete(this, mileage); }
+
+    void transitionTo(BorrowingState next) { this.state = next; }
+    public String getStateName()           { return state.getStateName(); }
+}
+```
+
+The interface makes *illegal* the default. A state only overrides the operations it actually allows; everything else throws — which the API maps to **HTTP 422 Unprocessable Entity**.
+
+```java
+public interface BorrowingState {
+    default void approve(BorrowingRequest r, String note) { illegal(); }
+    default void reject(BorrowingRequest r, String note)  { illegal(); }
+    default void startUse(BorrowingRequest r)             { illegal(); }
+    default void complete(BorrowingRequest r, int mileage){ illegal(); }
+    String getStateName();
+
+    private void illegal() {
+        throw new InvalidStateTransitionException(); // → 422
+    }
+}
+
+public class PendingState implements BorrowingState {
+    public void approve(BorrowingRequest r, String note) { r.transitionTo(new ApprovedState()); }
+    public void reject(BorrowingRequest r, String note)  { r.transitionTo(new RejectedState()); }
+    public String getStateName() { return "PENDING"; }
+}
+```
+
+Now "you can't start a trip on a request that was never approved" isn't a comment or a forgotten `if` — it's enforced by the type system: only `ApprovedState` overrides `startUse`, so every other state inherits the throwing default. The hierarchy keeps the rules for you.
+
+## The supporting cast
+
+Five more patterns each solved one specific pain point:
+
+- **Strategy — conflict checking.** Whether two bookings clash is a policy that might change, so the check lives behind a `ConflictCheckStrategy` interface (`StrictOverlapStrategy` is the default). Swapping in a "same-day buffer" rule later means one new class, not an edit to the booking service.
+
+- **Factory Method — role creation.** `RoleFactory` turns a `RoleType` into the right `Role` object (`AdminRole`, `ManagerRole`, `EmployeeRole`), so the rest of the code never news-up a role by hand or branches on its type.
+
+- **Template Method — permission guard.** An `AbstractProtectedService` defines the fixed "check permission, then do the work" skeleton; concrete services fill in the work. Authorization can't be forgotten because it's baked into the template.
+
+- **Adapter — repository bridging.** `*RepositoryAdapter` classes implement the domain's repository interfaces by delegating to Spring Data JPA repos, mapping between domain models and JPA entities. The domain never imports anything from `jakarta.persistence`.
+
+- **Observer — notifications.** A `BorrowingEventPublisher` fires domain events; an `EmailNotificationObserver` reacts. Adding an SMS or Discord notifier later is a new observer, with zero changes to the borrowing flow.
+
+## What I took away
+
+Design patterns get a bad reputation because they're easy to *over*-apply. The lesson from this project was the opposite: reach for a pattern **when a specific force pushes back** — a tangle of status branches (State), a policy that will change (Strategy), a cross-cutting rule that keeps getting skipped (Template Method). Used that way, each pattern paid for itself by making the *next* change smaller.
+
+The other quiet win was the **DIP boundary**. Being able to unit-test the entire service layer against in-memory repositories — no Postgres, no Spring — turned the test suite from a chore into something fast enough to actually run while coding. That, more than any single pattern, is what kept the codebase honest.
+
+You can browse the full source on [GitHub](https://github.com/JW-Albert/114-2_FCU_Framework-Design-Final).
+
+</div>
+
+<div data-zh>
+
+在逢甲大學 **軟體框架設計** 的期末專題中，我和組員一起打造了一套 **公司車輛管理系統** ── 讓員工申請公司車輛，並讓主管審核、派車，以及追蹤後續的保養。我負責 **系統架構設計、OOD 原則應用與後端 API 實作**，組員則負責 Vue 3 前端與資料庫層。
+
+這個專案有趣的地方不在 CRUD，而在於把它當成一個藉口，去「正確地」運用 **SOLID、迪米特法則與六個 GoF 設計模式** ── 不是為了用而用，而是為了讓一個本質上很雜亂的領域，在持續長大時仍然保持可讀。這篇文章就帶你走過幾個真正關鍵的決策。
+
+## 技術選型
+
+| 層級 | 選擇 |
+|------|------|
+| 後端 | Spring Boot 3.3.4 |
+| 安全認證 | Spring Security + JJWT（無狀態 JWT、BCrypt） |
+| 持久化 | PostgreSQL + Spring Data JPA、Flyway 遷移 |
+| 前端 | Vue 3 + TypeScript、Pinia、Vite |
+
+## 分層架構，以及為什麼領域要「擁有」自己的介面
+
+後端切分成清楚的層級 ── **Presentation → Service → Domain → Repository 介面 → Infrastructure** ── 但真正撐起整個設計的，是 **Repository 介面** 這道邊界。依循 **依賴反轉原則（DIP）**，領域層與服務層只依賴於它們 *自己* 定義的介面；JPA 實作則住在 infrastructure，並反過來向內依賴。
+
+```java
+// 領域層擁有它需要的契約
+public interface IBorrowingRepository {
+    BorrowingRequest save(BorrowingRequest request);
+    Optional<BorrowingRequest> findById(Long id);
+    List<BorrowingRequest> findOverlapping(Long vehicleId, Instant start, Instant end);
+}
+```
+
+光是這一次反轉，就換來兩個具體好處：服務層可以用一個極小的 **記憶體版 Repository**（不需要資料庫、不需要 Spring context）來測試；而日後要更換持久化方案，也完全碰不到領域層。JPA 類別透過 **Adapter 模式** 接上 ── 稍後再談。
+
+## 核心：State 模式
+
+一筆借車申請會走過一條嚴格的生命週期：
+
+```
+PENDING ──approve──▶ APPROVED ──startUse──▶ IN_USE ──complete──▶ RETURNED
+   │
+   └────reject────▶ REJECTED
+```
+
+每個狀態只允許特定的轉換。最天真的寫法，是在服務層四處散落 `if (status.equals("PENDING")) … else if …`，而且每加一條規則就更糟。我們的做法是：申請（**Context**）持有一個 `BorrowingState`，而每個具體狀態只封裝它所允許的轉換。
+
+```java
+// Context ── 把每個動作委派給當前狀態
+public class BorrowingRequest {
+    private BorrowingState state = new PendingState();
+
+    public void approve(String note)   { state.approve(this, note); }
+    public void reject(String note)    { state.reject(this, note); }
+    public void startUse()             { state.startUse(this); }
+    public void complete(int mileage)  { state.complete(this, mileage); }
+
+    void transitionTo(BorrowingState next) { this.state = next; }
+    public String getStateName()           { return state.getStateName(); }
+}
+```
+
+介面讓「非法」成為預設值。每個狀態只覆寫它真正允許的操作，其餘一律拋出例外 ── API 再把它對應到 **HTTP 422 Unprocessable Entity**。
+
+```java
+public interface BorrowingState {
+    default void approve(BorrowingRequest r, String note) { illegal(); }
+    default void reject(BorrowingRequest r, String note)  { illegal(); }
+    default void startUse(BorrowingRequest r)             { illegal(); }
+    default void complete(BorrowingRequest r, int mileage){ illegal(); }
+    String getStateName();
+
+    private void illegal() {
+        throw new InvalidStateTransitionException(); // → 422
+    }
+}
+
+public class PendingState implements BorrowingState {
+    public void approve(BorrowingRequest r, String note) { r.transitionTo(new ApprovedState()); }
+    public void reject(BorrowingRequest r, String note)  { r.transitionTo(new RejectedState()); }
+    public String getStateName() { return "PENDING"; }
+}
+```
+
+於是「不能對一筆從未核准的申請開始出車」不再是一行註解、或某個被遺忘的 `if`，而是 ── 在 `PendingState` 上 *沒有* 覆寫 `startUse`。編譯器與型別階層會替你把規則守住。
+
+## 配角群
+
+另外五個模式，各自解決了一個具體的痛點：
+
+- **Strategy ── 時段衝突檢查。** 兩筆預約是否衝突是一條「可能會變」的政策，因此檢查邏輯藏在 `ConflictCheckStrategy` 介面後（預設為 `StrictOverlapStrategy`）。日後要換成「同日緩衝」規則，只是多一個類別，而不是去改借車服務。
+
+- **Factory Method ── 角色建立。** `RoleFactory` 把 `RoleType` 轉成正確的 `Role` 物件（`AdminRole`、`ManagerRole`、`EmployeeRole`），讓其餘程式碼永遠不必自己 new 角色、也不必對型別做分支。
+
+- **Template Method ── 權限守衛。** `AbstractProtectedService` 定義了固定的「先檢查權限，再做事」骨架，具體服務只負責填入「做事」的部分。授權檢查不可能被遺漏，因為它被烤進了樣板裡。
+
+- **Adapter ── Repository 橋接。** `*RepositoryAdapter` 類別透過委派給 Spring Data JPA repo 來實作領域的 Repository 介面，並在領域模型與 JPA Entity 之間做轉換。領域層永遠不會 import 任何 `jakarta.persistence` 的東西。
+
+- **Observer ── 事件通知。** `BorrowingEventPublisher` 發出領域事件，`EmailNotificationObserver` 負責反應。日後要加 SMS 或 Discord 通知，只是新增一個觀察者，借車流程一行都不用改。
+
+## 我的收穫
+
+設計模式之所以名聲不好，是因為太容易被 *過度* 使用。這個專案給我的教訓恰恰相反：**當某個具體的「力」在反推你時，才去拿出對應的模式** ── 一堆糾結的狀態分支（State）、一條注定會變的政策（Strategy）、一條老是被略過的橫切規則（Template Method）。這樣使用，每個模式都會以「讓 *下一次* 修改變小」來回報你。
+
+另一個安靜的勝利，是 **DIP 那道邊界**。能夠用記憶體版 Repository 對整個服務層做單元測試 ── 不需要 Postgres、不需要 Spring ── 讓測試套件從一件苦差事，變成快到「真的會在寫程式時順手跑」的東西。比起任何單一模式，這才是讓整個程式碼庫保持誠實的關鍵。
+
+完整原始碼可以在 [GitHub](https://github.com/JW-Albert/114-2_FCU_Framework-Design-Final) 上瀏覽。
+
+</div>
