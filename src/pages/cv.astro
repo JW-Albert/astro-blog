@@ -1,0 +1,520 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { localizedHref } from '../utils/i18n';
+
+const title = 'CV — Albert Wang (王建葦)';
+const description =
+	'Curriculum vitae of Albert Wang (王建葦) — Backend System Engineer focused on cloud infrastructure, IoT systems, and industrial hardware integration.';
+const L = (p: string) => localizedHref(Astro.currentLocale, p);
+
+// Résumé projects (mirrors the PDF), grouped by context.
+const projectGroups = [
+	{
+		en: 'Work',
+		zh: '工作經歷',
+		items: [
+			{
+				name: 'aws_ggc-daq-NIDAQ-python',
+				repo: 'https://github.com/JW-Albert/aws_ggc-daq-NIDAQ-python',
+				tags: ['AWS Greengrass Core', 'NI-DAQ', 'Python', 'Edge'],
+				en: 'An NI-DAQ acquisition module built on AWS Greengrass Core, streaming real-time data from NI sensor hardware to the cloud as the data source for the PHM system.',
+				zh: '在 AWS Greengrass Core 邊緣運算環境上開發的 NI DAQ 資料擷取模組，從 NI 感測器硬體擷取即時資料並傳輸至雲端，為 PHM 故障預測系統提供資料來源。',
+			},
+			{
+				name: 'ProWaveDAQ-Python-Package-Unit',
+				repo: 'https://github.com/JW-Albert/ProWaveDAQ-Python-Package-Unit',
+				tags: ['Python', 'Package', 'Hardware'],
+				en: 'A self-built Python driver for ProWave DAQ devices, wrapping the hardware communication interface behind a unified data-access API.',
+				zh: '針對 ProWave DAQ 設備自製的 Python 讀取套件，封裝硬體通訊介面，提供統一的資料存取 API，降低上層應用對硬體細節的依賴。',
+			},
+			{
+				name: 'NiDAQ-C-Package-Unit',
+				repo: 'https://github.com/JW-Albert/NiDAQ-C-Package-Unit',
+				tags: ['C', 'NI-DAQ', 'Hardware'],
+				en: 'A self-built NI-DAQ reader in C, operating the low-level hardware interface directly for high-performance acquisition in performance-sensitive embedded environments.',
+				zh: '以 C 語言自製的 NI DAQ 感測器讀取套件，直接操作底層硬體介面，具備高效能資料擷取能力，適用於對效能敏感的嵌入式環境。',
+			},
+			{
+				name: 'ICP-DAS_PET-AR400',
+				repo: 'https://github.com/JW-Albert/ICP-DAS_PET-AR400',
+				tags: ['C', 'Industrial IoT'],
+				en: 'A C reader for ICP DAS PET-AR400 industrial controllers, implementing communication and control with industrial-grade I/O devices for factory equipment monitoring.',
+				zh: '針對泓格科技 PET-AR400 工業控制器開發的 C 語言讀取套件，實現與工業級 I/O 裝置的通訊與控制，應用於工廠設備監控場景。',
+			},
+		],
+	},
+	{
+		en: 'School',
+		zh: '學校專案',
+		items: [
+			{
+				name: 'IOT-Shadow-Display-UnixFinal',
+				repo: 'https://github.com/JW-Albert/IOT-Shadow-Display-UnixFinal',
+				tags: ['Python', 'Flask', 'ESP32', 'Linux'],
+				en: 'Unix course final project. Simulates the desired/reported/delta state-sync of AWS IoT Shadow with an ESP32, forming a complete end-to-end IoT control architecture. Flask + JSON manage device state with no cloud or database, supporting offline/embedded deployment.',
+				zh: 'Unix 課程期末專案。模擬 AWS IoT Shadow 的 desired / reported / delta 狀態同步機制，搭配 ESP32 實現完整端到端的 IoT 控制架構。後端使用 Flask + JSON 管理裝置狀態，無需雲端或資料庫，支援離線與嵌入式環境。',
+			},
+			{
+				name: 'Jiu-Pluck',
+				repo: 'https://github.com/JW-Albert/Jiu-Pluck',
+				tags: ['FastAPI', 'React 18', 'TypeScript', 'JWT'],
+				en: 'A campus meetup platform supporting private rooms and public events, with timetable management, automatic free-slot calculation, Google Calendar sync, and Discord webhook notifications. Decoupled front/back end with JWT auth, email-OTP login, and systemd deployment.',
+				zh: '自主開發的大學生揪出門社交平台，支援私人揪團與公開活動。整合課表管理、自動計算空堂、Google Calendar 同步與 Discord Webhook 通知。前後端分離，具備 JWT 認證、Email OTP 登入與 systemd 服務部署。',
+			},
+			{
+				name: 'Python (self-study log)',
+				repo: 'https://github.com/JW-Albert/Python',
+				tags: ['Python', 'NumPy', 'FastAPI'],
+				en: 'A systematic record of learning Python language features and libraries — advanced syntax (context managers, enum, __init__), logging (Loguru), numerical computing (NumPy), and web frameworks (Flask, FastAPI).',
+				zh: '系統性記錄 Python 語言特性與套件的自主學習歷程，涵蓋進階語法（Context Manager、enum、__init__）、日誌（Loguru）、數值運算（NumPy）與 Web 框架（Flask、FastAPI）。',
+			},
+		],
+	},
+	{
+		en: 'Side Project',
+		zh: 'Side Project',
+		items: [
+			{
+				name: 'Prisvalis — Personal Blog',
+				repo: 'https://www.jw-albert.tw',
+				tags: ['WordPress', 'Cloudflare Tunnel', 'VPS', 'Linux'],
+				en: 'A personal tech site self-hosted and maintained since high school, migrated from Hugo to WordPress and served from a self-hosted VPS via Cloudflare Tunnel without exposing ports 80/443. A platform for server-administration notes and technical write-ups.',
+				zh: '高中起自行架設並持續維護的個人技術網站，歷經 Hugo 到 WordPress 的遷移。透過 Cloudflare Tunnel 將自架 VPS 對外服務，無需暴露 80/443 埠，作為發布伺服器筆記與技術心得的學習輸出平台。',
+			},
+		],
+	},
+];
+
+const skillGroups = [
+	{
+		en: 'Languages',
+		zh: '程式語言',
+		skills: ['Python', 'C / C++', 'SQL'],
+	},
+	{
+		en: 'Cloud & Infrastructure',
+		zh: '雲端與基礎設施',
+		skills: ['AWS', 'Cloudflare', 'Docker', 'Linux Server Admin', 'CLI'],
+	},
+	{
+		en: 'IoT & Data',
+		zh: '物聯網與資料',
+		skills: [
+			'IoT Systems',
+			'Sensor Packages',
+			'MQTT & Modbus',
+			'Data Analysis & PHM',
+		],
+	},
+	{
+		en: 'Tools & Practices',
+		zh: '工具與協作',
+		skills: ['Git / GitHub', 'SQL & Databases'],
+	},
+];
+---
+
+<!doctype html>
+<html lang={Astro.currentLocale === 'zh' ? 'zh-TW' : 'en'}>
+	<head>
+		<BaseHead title={title} description={description} />
+		<style>
+			main {
+				width: 880px;
+				max-width: calc(100% - 2em);
+			}
+			.cv-head {
+				text-align: center;
+				margin-bottom: 2.5em;
+			}
+			.cv-head h1 {
+				margin: 0.1em 0 0.15em;
+				font-size: 2.6rem;
+			}
+			.cv-head .role {
+				margin: 0 0 0.9em;
+				font-size: 1.1rem;
+				font-weight: 600;
+				color: rgb(var(--gray));
+			}
+			.contact {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.4em 1em;
+				justify-content: center;
+				font-size: 0.95rem;
+				font-weight: 600;
+			}
+			.cv-section {
+				margin-bottom: 2.6em;
+			}
+			.cv-section > h2 {
+				display: flex;
+				align-items: center;
+				gap: 0.5em;
+				font-size: 1.4rem;
+				margin: 0 0 1em;
+				padding-bottom: 0.35em;
+				border-bottom: 2px solid var(--accent-soft);
+			}
+			.summary {
+				font-size: 1.05rem;
+				line-height: 1.85;
+			}
+			/* Experience */
+			.job {
+				padding: 1.5em 1.6em;
+			}
+			.job-head {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: space-between;
+				gap: 0.3em 1em;
+				align-items: baseline;
+				margin-bottom: 0.8em;
+			}
+			.job-role {
+				margin: 0;
+				font-size: 1.2rem;
+			}
+			.job-date {
+				color: rgb(var(--gray));
+				font-size: 0.9rem;
+				font-weight: 600;
+				white-space: nowrap;
+			}
+			.job ul {
+				margin: 0;
+				padding-left: 1.2em;
+			}
+			.job li {
+				margin-bottom: 0.4em;
+				line-height: 1.6;
+			}
+			.highlight {
+				margin-top: 1.3em;
+				padding: 1.1em 1.3em;
+				background: var(--accent-soft);
+				border-left: 4px solid var(--accent);
+				border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+			}
+			.highlight .h-title {
+				font-weight: 700;
+				color: var(--accent-dark);
+				margin-bottom: 0.7em;
+			}
+			.stats {
+				display: grid;
+				grid-template-columns: repeat(4, 1fr);
+				gap: 0.8em;
+				margin: 0.8em 0 1em;
+			}
+			.stat {
+				text-align: center;
+				background: var(--surface);
+				border: 1px solid rgb(var(--border));
+				border-radius: var(--radius-sm);
+				padding: 0.7em 0.4em;
+			}
+			.stat .num {
+				display: block;
+				font-size: 1.35rem;
+				font-weight: 800;
+				color: var(--accent-dark);
+				line-height: 1.1;
+			}
+			.stat .lbl {
+				font-size: 0.72rem;
+				color: rgb(var(--gray));
+			}
+			.highlight ul {
+				margin: 0;
+				padding-left: 1.2em;
+				font-size: 0.95rem;
+			}
+			.highlight li {
+				margin-bottom: 0.35em;
+				line-height: 1.6;
+			}
+			/* Projects */
+			.proj-group {
+				margin-bottom: 1.4em;
+			}
+			.proj-group-label {
+				font-size: 0.78rem;
+				font-weight: 700;
+				text-transform: uppercase;
+				letter-spacing: 0.1em;
+				color: var(--accent-dark);
+				margin-bottom: 0.7em;
+			}
+			.proj {
+				padding: 1em 1.2em;
+				margin-bottom: 0.8em;
+			}
+			.proj-top {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: space-between;
+				align-items: baseline;
+				gap: 0.4em;
+			}
+			.proj-name {
+				margin: 0;
+				font-size: 1.02rem;
+				font-weight: 700;
+			}
+			.proj-name a {
+				color: rgb(var(--black));
+			}
+			.proj-name a:hover {
+				color: var(--accent-dark);
+			}
+			.proj-repo {
+				font-size: 0.82rem;
+				font-weight: 600;
+				white-space: nowrap;
+			}
+			.proj-desc {
+				margin: 0.5em 0 0.7em;
+				font-size: 0.9rem;
+				line-height: 1.6;
+				color: rgb(var(--gray-dark));
+			}
+			.proj .tags,
+			.skill-group .tags {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.4em;
+			}
+			/* Skills */
+			.skill-group {
+				margin-bottom: 1em;
+			}
+			.skill-group .lbl {
+				font-weight: 700;
+				margin-bottom: 0.5em;
+			}
+			/* Education & certs */
+			.meta-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 1.5em;
+			}
+			.meta-grid ul {
+				margin: 0.4em 0 0;
+				padding-left: 1.2em;
+			}
+			.meta-grid li {
+				margin-bottom: 0.3em;
+			}
+			.note {
+				text-align: center;
+				font-size: 0.85rem;
+				color: rgb(var(--gray));
+				margin-top: 2.5em;
+			}
+			@media (max-width: 680px) {
+				.stats {
+					grid-template-columns: repeat(2, 1fr);
+				}
+				.meta-grid {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<!-- ===== Header ===== -->
+			<header class="cv-head">
+				<p class="eyebrow">
+					<span data-en>Curriculum Vitae</span><span data-zh>履歷</span>
+				</p>
+				<h1>
+					<span data-en>Albert Wang</span><span data-zh>王建葦 Albert</span>
+				</h1>
+				<p class="role">
+					<span data-en
+						>Backend System Engineer · Cloud, IoT &amp; Industrial Hardware</span
+					>
+					<span data-zh>後端系統工程師 · 雲端、物聯網與工業硬體整合</span>
+				</p>
+				<div class="contact">
+					<a href="mailto:albert@mail.jw-albert.tw">albert@mail.jw-albert.tw</a>
+					<a href="https://github.com/JW-Albert" target="_blank" rel="noopener">GitHub</a>
+					<a href="https://www.linkedin.com/in/jw-albert" target="_blank" rel="noopener">LinkedIn</a>
+				</div>
+			</header>
+
+			<!-- ===== Summary ===== -->
+			<section class="cv-section">
+				<h2>📝 <span data-en>Summary</span><span data-zh>自傳</span></h2>
+				<p class="summary" data-en>
+					A Computer Science student at <strong>Feng Chia University</strong> with
+					hands-on backend experience from an internship at <strong>imCloud
+					Co., Ltd.</strong> I have practical development experience across cloud
+					infrastructure (AWS), IoT systems, and industrial hardware integration.
+					Proficient in <strong>Python and C/C++</strong>, I focus on building
+					stable, scalable backend solutions, with a strong passion for low-level
+					programming, sensor data acquisition, and hardware–software integration.
+				</p>
+				<p class="summary" data-zh>
+					就讀 <strong>逢甲大學資訊工程學系</strong>，曾於 <strong>機智雲股份有限公司</strong>
+					擔任後端工程師實習，具備雲端基礎設施（AWS）、IoT 系統與工業硬體整合的實務開發經驗。
+					熟悉 <strong>Python 與 C/C++</strong>，專注於建構穩定、可擴展的後端解決方案，
+					對底層程式設計、感測器資料擷取及軟硬體整合有高度熱忱。
+				</p>
+			</section>
+
+			<!-- ===== Experience ===== -->
+			<section class="cv-section">
+				<h2>💼 <span data-en>Experience</span><span data-zh>工作經歷</span></h2>
+				<article class="job card">
+					<div class="job-head">
+						<h3 class="job-role">
+							<span data-en>Backend System Engineer · imCloud Co., Ltd.</span>
+							<span data-zh>後端系統工程師 · 機智雲股份有限公司</span>
+						</h3>
+						<span class="job-date">2024/10 – 2025/12</span>
+					</div>
+					<ul>
+						<li>
+							<span data-en>Developed a <strong>Prognostics &amp; Health Management (PHM)</strong> system for predictive maintenance of industrial equipment.</span>
+							<span data-zh>開發 <strong>PHM 故障預測與健康管理</strong>系統，用於工業設備的預測性維護。</span>
+						</li>
+						<li>
+							<span data-en>Built and deployed edge-computing modules on <strong>AWS Greengrass</strong>.</span>
+							<span data-zh><strong>AWS Greengrass</strong> 邊緣運算模組的開發與部署。</span>
+						</li>
+						<li>
+							<span data-en>Developed sensor-acquisition packages for <strong>NI-DAQ / PW-DAQ / ICP DAS</strong> hardware (Python &amp; C).</span>
+							<span data-zh><strong>NI DAQ / PW DAQ / ICP DAS</strong> 感測器套件開發（Python &amp; C）。</span>
+						</li>
+						<li>
+							<span data-en>Built real-time hardware data-visualization software and designed IoT device-state management and data-acquisition pipelines.</span>
+							<span data-zh>硬體數據可視化程式開發，並設計 IoT 裝置狀態管理與資料擷取流程。</span>
+						</li>
+						<li>
+							<span data-en>Handled server and network administration, including <strong>Cloudflare</strong> and Cloudflare Tunnel.</span>
+							<span data-zh>伺服器與網路管理，包含 <strong>Cloudflare</strong> 與 Cloudflare Tunnel 應用。</span>
+						</li>
+					</ul>
+
+					<div class="highlight">
+						<div class="h-title">
+							<span data-en>★ Flagship — ProWaveDAQ real-time acquisition &amp; visualization system</span>
+							<span data-zh>★ 代表作 — ProWaveDAQ 實時數據採集與可視化系統</span>
+						</div>
+						<div class="stats">
+							<div class="stat"><span class="num">7,812 Hz</span><span class="lbl"><span data-en>sample rate</span><span data-zh>取樣率</span></span></div>
+							<div class="stat"><span class="num">50:1</span><span class="lbl"><span data-en>downsampling</span><span data-zh>降頻</span></span></div>
+							<div class="stat"><span class="num">−98%</span><span class="lbl"><span data-en>transfer</span><span data-zh>傳輸量</span></span></div>
+							<div class="stat"><span class="num">5</span><span class="lbl"><span data-en>threads</span><span data-zh>執行緒</span></span></div>
+						</div>
+						<ul>
+							<li>
+								<span data-en><strong>Backend:</strong> a Python <strong>Flask</strong> REST API on a 5-thread architecture isolating sensor reading, web serving, CSV storage, and database upload — coordinated through <code>queue.Queue</code> for lossless inter-thread communication.</span>
+								<span data-zh><strong>後端：</strong>以 Python <strong>Flask</strong> 開發 REST API，採五執行緒架構，使「感測器讀取、Web 服務、CSV 儲存、資料庫上傳」互不干擾，並以 <code>queue.Queue</code> 確保資料不遺失、不重複。</span>
+							</li>
+							<li>
+								<span data-en><strong>Performance:</strong> engineered a 50:1 downsampling scheme for 7,812 Hz data, cutting frontend transfer by 98% with no loss of meaningful information; charts refresh 3 channels every 200 ms via Chart.js.</span>
+								<span data-zh><strong>效能：</strong>為 7,812 Hz 高頻資料設計 50:1 降頻，前端傳輸量減少 98% 而不失重要資訊；前端以 Chart.js 每 200 毫秒更新三通道圖表。</span>
+							</li>
+							<li>
+								<span data-en><strong>Reliability:</strong> MariaDB time-series storage with auto file-splitting and batch upload, SQL retry / fault-tolerance, and unified logging with <strong>loguru</strong>.</span>
+								<span data-zh><strong>可靠性：</strong>MariaDB 時序資料庫搭配自動分檔與批次上傳，SQL 上傳失敗重試與資料保護，並以 <strong>loguru</strong> 建立統一日誌系統。</span>
+							</li>
+						</ul>
+					</div>
+				</article>
+			</section>
+
+			<!-- ===== Projects ===== -->
+			<section class="cv-section">
+				<h2>🚀 <span data-en>Selected Projects</span><span data-zh>專案經歷</span></h2>
+				{
+					projectGroups.map((g) => (
+						<div class="proj-group">
+							<p class="proj-group-label">
+								<span data-en>{g.en}</span><span data-zh>{g.zh}</span>
+							</p>
+							{g.items.map((p) => (
+								<article class="proj card">
+									<div class="proj-top">
+										<h3 class="proj-name">
+											<a href={p.repo} target="_blank" rel="noopener">{p.name}</a>
+										</h3>
+										<a class="proj-repo" href={p.repo} target="_blank" rel="noopener">
+											<span data-en>View →</span><span data-zh>查看 →</span>
+										</a>
+									</div>
+									<p class="proj-desc">
+										<span data-en>{p.en}</span><span data-zh>{p.zh}</span>
+									</p>
+									<div class="tags">
+										{p.tags.map((t) => <span class="tag">{t}</span>)}
+									</div>
+								</article>
+							))}
+						</div>
+					))
+				}
+				<p style="font-size:0.9rem;font-weight:600;">
+					<a href={L('/projects')}>
+						<span data-en>→ See the full project portfolio</span>
+						<span data-zh>→ 查看完整作品集</span>
+					</a>
+				</p>
+			</section>
+
+			<!-- ===== Skills ===== -->
+			<section class="cv-section">
+				<h2>🛠️ <span data-en>Skills</span><span data-zh>技能</span></h2>
+				{
+					skillGroups.map((s) => (
+						<div class="skill-group">
+							<p class="lbl"><span data-en>{s.en}</span><span data-zh>{s.zh}</span></p>
+							<div class="tags">
+								{s.skills.map((k) => <span class="tag">{k}</span>)}
+							</div>
+						</div>
+					))
+				}
+			</section>
+
+			<!-- ===== Education & Certifications ===== -->
+			<section class="cv-section">
+				<div class="meta-grid">
+					<div>
+						<h2>🎓 <span data-en>Education</span><span data-zh>學歷</span></h2>
+						<ul>
+							<li>
+								<span data-en><strong>Feng Chia University</strong> — Dept. of Information Engineering and Computer Science</span>
+								<span data-zh><strong>逢甲大學</strong> — 資訊工程學系</span>
+								<br /><span class="job-date">2023 – {(new Date().getFullYear())}</span>
+							</li>
+						</ul>
+					</div>
+					<div>
+						<h2>📜 <span data-en>Certifications</span><span data-zh>證照</span></h2>
+						<ul>
+							<li>TQC+ Python</li>
+							<li>TQC+ Java</li>
+							<li><span data-en>TQC Linux System Administration</span><span data-zh>TQC Linux 系統管理</span></li>
+						</ul>
+					</div>
+				</div>
+			</section>
+
+			<p class="note">
+				<span data-en>Want the full details? Reach out via email or LinkedIn above.</span>
+				<span data-zh>想了解更完整的內容？歡迎透過上方的 Email 或 LinkedIn 與我聯繫。</span>
+			</p>
+		</main>
+		<Footer />
+	</body>
+</html>
