@@ -1,0 +1,112 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import {
+	projects,
+	categoryMeta,
+	categoryOrder,
+	GITHUB_URL,
+} from '../data/projects';
+
+const title = 'Projects — PRISVALIS';
+const description =
+	"A selection of Albert Wang's open-source work — data acquisition & PHM, cloud/IoT/edge, full-stack web apps, and developer tooling.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={title} description={description} />
+		<style>
+			main {
+				width: var(--maxw-wide);
+				max-width: calc(100% - 2em);
+			}
+			.page-head {
+				text-align: center;
+				margin-bottom: 2.5em;
+			}
+			.page-head h1 {
+				margin-bottom: 0.3em;
+			}
+			.page-head p {
+				max-width: 620px;
+				margin: 0 auto 1.2em;
+				color: rgb(var(--gray-dark));
+			}
+			.category {
+				margin-bottom: 3em;
+			}
+			.category-title {
+				display: flex;
+				align-items: center;
+				gap: 0.5em;
+				font-size: 1.5rem;
+				margin: 0 0 1.2em;
+				padding-bottom: 0.4em;
+				border-bottom: 2px solid var(--accent-soft);
+			}
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 1.5em;
+			}
+			@media (max-width: 760px) {
+				.grid {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="page-head">
+				<p class="eyebrow">Portfolio</p>
+				<h1>
+					<span data-en>Projects</span>
+					<span data-zh>作品集</span>
+				</h1>
+				<p>
+					<span data-en
+						>A selection of my open-source work — spanning industrial data
+						acquisition, cloud &amp; edge computing, full-stack web apps, and the
+						tools I build to make my own workflow faster.</span
+					>
+					<span data-zh
+						>精選的開源專案 ── 橫跨工業資料採集、雲端與邊緣運算、全端網頁應用，以及我為了加速自身工作流程而打造的工具。</span
+					>
+				</p>
+				<a class="btn btn-secondary" href={GITHUB_URL} target="_blank" rel="noopener">
+					<span data-en>See all repositories on GitHub →</span>
+					<span data-zh>在 GitHub 查看全部 →</span>
+				</a>
+			</div>
+
+			{
+				categoryOrder.map((cat) => {
+					const items = projects.filter((p) => p.category === cat);
+					if (items.length === 0) return null;
+					const meta = categoryMeta[cat];
+					return (
+						<section class="category">
+							<h2 class="category-title">
+								<span>{meta.emoji}</span>
+								<span data-en>{meta.en}</span>
+								<span data-zh>{meta.zh}</span>
+							</h2>
+							<div class="grid">
+								{items.map((p) => (
+									<ProjectCard project={p} />
+								))}
+							</div>
+						</section>
+					);
+				})
+			}
+		</main>
+		<Footer />
+	</body>
+</html>

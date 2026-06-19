@@ -2,7 +2,15 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import FormattedDate from '../components/FormattedDate.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { featuredProjects, GITHUB_URL } from '../data/projects';
+import { getCollection } from 'astro:content';
+
+const latestPosts = (await getCollection('blog'))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 3);
 ---
 
 <!doctype html>
@@ -11,109 +19,244 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 		<style>
 			main {
-				max-width: 800px;
-				margin: 0 auto;
-				padding: 4em 2em;
+				width: var(--maxw-wide);
+				max-width: calc(100% - 2em);
 			}
+			/* Hero */
 			.hero {
 				text-align: center;
-				margin-bottom: 3em;
+				padding: 2.5em 0 3em;
 			}
 			.hero h1 {
-				font-size: 3rem;
-				margin-bottom: 0.3em;
+				font-size: clamp(2.8rem, 8vw, 4.2rem);
+				letter-spacing: 0.06em;
+				margin-bottom: 0.15em;
+				background: linear-gradient(120deg, var(--accent), var(--accent-dark));
+				-webkit-background-clip: text;
+				background-clip: text;
+				color: transparent;
 			}
 			.tagline {
-				font-size: 1.1rem;
+				font-size: 1.15rem;
+				font-weight: 600;
 				color: rgb(var(--gray));
-				margin-bottom: 2em;
+				margin: 0 0 1.5em;
 			}
 			.intro {
+				max-width: 640px;
+				margin: 0 auto 2em;
 				font-size: 1.05rem;
 				line-height: 1.8;
-				color: rgb(var(--gray-dark));
-				margin-bottom: 2.5em;
 			}
-			.links {
+			.intro p {
+				margin-bottom: 0.8em;
+			}
+			.cta {
 				display: flex;
-				gap: 1em;
+				gap: 0.8em;
 				justify-content: center;
 				flex-wrap: wrap;
+				margin-bottom: 1.5em;
 			}
-			.links a {
-				display: inline-flex;
-				align-items: center;
+			.social {
+				display: flex;
+				gap: 1.1em;
 				justify-content: center;
-				padding: 0.6em 1.4em;
-				border-radius: 8px;
+				color: rgb(var(--gray));
+			}
+			.social a {
+				color: rgb(var(--gray));
+				transition: color 0.15s, transform 0.15s;
+				display: inline-flex;
+			}
+			.social a:hover {
+				color: var(--accent-dark);
+				transform: translateY(-2px);
+			}
+			/* Section scaffolding */
+			.section {
+				margin-bottom: 3.5em;
+			}
+			.section-head {
+				display: flex;
+				align-items: baseline;
+				justify-content: space-between;
+				gap: 1em;
+				margin-bottom: 1.3em;
+				flex-wrap: wrap;
+			}
+			.section-head h2 {
+				margin: 0;
+				font-size: 1.6rem;
+			}
+			.see-all {
+				font-weight: 700;
+				font-size: 0.95rem;
+				white-space: nowrap;
+			}
+			/* Latest posts */
+			.post-list {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5em;
+			}
+			.post-row {
+				display: flex;
+				align-items: baseline;
+				gap: 1em;
+				padding: 0.9em 1em;
+				border-radius: var(--radius-sm);
 				text-decoration: none;
+				transition: background 0.15s;
+			}
+			.post-row:hover {
+				background: var(--accent-soft);
+				text-decoration: none;
+			}
+			.post-row .pdate {
+				flex-shrink: 0;
+				width: 7.5em;
+				color: rgb(var(--gray));
+				font-size: 0.85rem;
+			}
+			.post-row .ptitle {
+				color: rgb(var(--black));
 				font-weight: 600;
-				line-height: 1;
-				transition: opacity 0.2s;
 			}
-			.links a:hover {
-				opacity: 0.8;
+			.post-row:hover .ptitle {
+				color: var(--accent-dark);
 			}
-			.btn-primary {
-				background: var(--accent);
-				color: white;
-			}
-			.btn-secondary {
-				border: 2px solid var(--accent);
-				color: var(--accent);
-			}
-			hr {
-				margin: 3em 0;
-				border: none;
-				border-top: 1px solid rgb(var(--gray-light));
+			/* Featured project grid */
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 1.5em;
 			}
 			.rebuild-note {
 				text-align: center;
 				color: rgb(var(--gray));
 				font-size: 0.95rem;
 				font-style: italic;
+				margin-top: 2em;
+			}
+			@media (max-width: 760px) {
+				.grid {
+					grid-template-columns: 1fr;
+				}
+				.post-row {
+					flex-direction: column;
+					gap: 0.15em;
+				}
+				.post-row .pdate {
+					width: auto;
+				}
 			}
 		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<div class="hero">
+			<!-- Hero -->
+			<section class="hero">
 				<h1>PRISVALIS</h1>
 				<p class="tagline">
-					<span data-zh>王老師生命專線</span>
-					<span data-en>Albert Wang's Tech Blog</span>
+					<span data-en>Albert Wang · System Engineer &amp; Builder</span>
+					<span data-zh>王建葦 Albert · 系統工程師</span>
 				</p>
-			</div>
+				<div class="intro">
+					<div data-en>
+						<p>
+							I'm a Computer Science student at <strong>Feng Chia University</strong>
+							who loves building systems from the ground up — embedded devices,
+							cloud &amp; edge computing, and AI-driven system integration.
+						</p>
+						<p>
+							This is where I document my technical projects, server notes, and
+							anything else worth sharing.
+						</p>
+					</div>
+					<div data-zh>
+						<p>
+							我是 <strong>逢甲大學資訊工程學系</strong> 的學生，熱愛從零開始打造系統 ──
+							嵌入式裝置、雲端與邊緣運算，以及 AI 應用整合。
+						</p>
+						<p>這裡記錄我的技術專案、伺服器架設筆記，以及一切值得分享的東西。</p>
+					</div>
+				</div>
+				<div class="cta">
+					<a href="/projects" class="btn btn-primary">
+						<span data-en>View Projects</span><span data-zh>瀏覽作品</span>
+					</a>
+					<a href="/blog" class="btn btn-secondary">
+						<span data-en>Read the Blog</span><span data-zh>閱讀文章</span>
+					</a>
+				</div>
+				<div class="social">
+					<a href={GITHUB_URL} target="_blank" rel="noopener" aria-label="GitHub">
+						<svg viewBox="0 0 16 16" width="24" height="24" aria-hidden="true"
+							><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>
+					</a>
+					<a href="https://www.linkedin.com/in/jw-albert/" target="_blank" rel="noopener" aria-label="LinkedIn">
+						<svg viewBox="0 0 16 16" width="24" height="24" aria-hidden="true"
+							><path fill="currentColor" d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z"></path></svg>
+					</a>
+					<a href="https://www.instagram.com/_albert_wang_/" target="_blank" rel="noopener" aria-label="Instagram">
+						<svg viewBox="0 0 16 16" width="24" height="24" aria-hidden="true"
+							><path fill="currentColor" d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0H8zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"></path></svg>
+					</a>
+				</div>
+			</section>
 
-			<div class="intro">
-				<span data-en>
-					<p>Hi, I'm <strong>Albert Wang</strong>, a Computer Science student at <strong>Feng Chia University</strong> in Taiwan.</p>
-					<p>I'm passionate about <strong>embedded systems, cloud and edge computing, and AI-driven system integration</strong>. I currently work as a System Engineer at <strong>imCloud Co., Ltd.</strong>, building data ingestion pipelines, device control logic, and IoT edge collaboration systems.</p>
-					<p>This is where I document my technical projects, server setups, and anything else I find worth sharing.</p>
-				</span>
-				<span data-zh>
-					<p>嗨，我是 <strong>Albert Wang</strong>，目前就讀於 <strong>逢甲大學資訊工程學系</strong>。</p>
-					<p>我對 <strong>嵌入式系統、雲端與邊緣運算、AI 應用整合</strong> 充滿熱情。目前在 <strong>機智雲股份有限公司</strong> 擔任系統工程師，負責資料接收流程、設備控制邏輯與 IoT 邊緣協同架構的開發。</p>
-					<p>這裡記錄我的技術專案、伺服器架設筆記，以及一切值得分享的東西。</p>
-				</span>
-			</div>
+			<!-- Featured projects -->
+			<section class="section">
+				<div class="section-head">
+					<h2>
+						<span data-en>Featured Projects</span><span data-zh>精選作品</span>
+					</h2>
+					<a class="see-all" href="/projects">
+						<span data-en>All projects →</span><span data-zh>所有作品 →</span>
+					</a>
+				</div>
+				<div class="grid">
+					{featuredProjects.map((p) => <ProjectCard project={p} />)}
+				</div>
+			</section>
 
-			<div class="links">
-				<a href="/blog" class="btn-primary">
-					<span data-en>Read the Blog</span>
-					<span data-zh>瀏覽文章</span>
-				</a>
-				<a href="/about" class="btn-secondary">
-					<span data-en>About Me</span>
-					<span data-zh>關於我</span>
-				</a>
-			</div>
-
-			<hr />
+			<!-- Latest posts -->
+			<section class="section">
+				<div class="section-head">
+					<h2>
+						<span data-en>Latest Posts</span><span data-zh>最新文章</span>
+					</h2>
+					<a class="see-all" href="/blog">
+						<span data-en>All posts →</span><span data-zh>所有文章 →</span>
+					</a>
+				</div>
+				<div class="post-list">
+					{
+						latestPosts.map((post) => (
+							<a class="post-row" href={`/blog/${post.id}/`}>
+								<span class="pdate">
+									<FormattedDate date={post.data.pubDate} />
+								</span>
+								<span class="ptitle">
+									{post.data.titleZh ? (
+										<>
+											<span data-en>{post.data.title}</span>
+											<span data-zh>{post.data.titleZh}</span>
+										</>
+									) : (
+										post.data.title
+									)}
+								</span>
+							</a>
+						))
+					}
+				</div>
+			</section>
 
 			<p class="rebuild-note">
-				<span data-en>This is the 10th rebuild of this site — officially recorded. WOW.</span>
+				<span data-en>This is the 11th rebuild of this site — officially recorded. WOW.</span>
 				<span data-zh>這是我第 11 次（官方紀錄）重建這個網站 WOW。</span>
 			</p>
 		</main>
