@@ -33,9 +33,51 @@ Navigate to the Zero Trust settings page from the left-hand menu, or click **Acc
 
 Follow the setup by navigating to: **Left sidebar → Networks → Connectors → Create a tunnel → Cloudflared**.
 
-Select the corresponding installation command based on the device's operating system.
+Select the corresponding installation command based on the device's operating system. On Debian, the dashboard provides a command similar to the one below — it downloads the `cloudflared` package and registers it as a service using your unique tunnel token:
 
-Configure the DNS record.
+```bash
+curl -L --output cloudflared.deb \
+  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+sudo dpkg -i cloudflared.deb
+sudo cloudflared service install <YOUR-TUNNEL-TOKEN>
+```
+
+The connector only makes **outbound** connections to Cloudflare's edge, so you never have to open inbound ports (80/443) or own a public, static IP.
+
+## Verify the Connector
+
+Confirm the daemon is running as a system service:
+
+```bash
+sudo systemctl status cloudflared
+```
+
+Back in the dashboard, the tunnel's status changes to **Connected / Healthy** once the connector registers.
+
+## Add a Public Hostname
+
+This is where you map a hostname to your local service. Open the tunnel and go to the **Public Hostnames** tab, then **Add a public hostname**:
+
+- **Domain / Subdomain:** pick your domain and an optional subdomain (for example `www.example.com`, or leave the subdomain empty for the apex domain).
+- **Service → Type:** `HTTP` (use `HTTPS` if your local server already serves TLS).
+- **Service → URL:** the address of your local web server, e.g. `localhost:80`.
+
+When you save, Cloudflare **automatically creates the DNS record** — a proxied `CNAME` pointing at the tunnel — so you do not need to add it by hand.
+
+## Verify
+
+Open `https://your-domain.com` in a browser. The request now travels **visitor → Cloudflare edge → tunnel → your local server**, served over Cloudflare's TLS certificate.
+
+## (Recommended) Protect It with Access
+
+If the site is not meant to be fully public, create a Zero Trust **Access** application for the hostname and attach a policy (for example, allow only specific email addresses) so visitors must authenticate before reaching your server.
+
+## Why Use Cloudflare Tunnel?
+
+- **No exposed ports** — the connection is outbound-only; you never forward 80/443 on your router.
+- **No public IP required** — it works behind CGNAT or a dynamic IP.
+- **Origin IP stays hidden** — clients only ever see Cloudflare's edge.
+- **Free, automatic TLS** — Cloudflare terminates HTTPS for you.
 
 </div>
 
@@ -64,8 +106,50 @@ Configure the DNS record.
 
 依照以下路徑進行設定：**左側導航欄 → Networks → Connectors → Create a tunnel → Cloudflared**。
 
-根據裝置的作業系統選擇對應的安裝指令。
+根據裝置的作業系統選擇對應的安裝指令。在 Debian 上，儀表板會提供類似下方的指令 —— 它會下載 `cloudflared` 套件，並使用你專屬的 Tunnel Token 將其註冊為系統服務：
 
-設定 DNS 紀錄。
+```bash
+curl -L --output cloudflared.deb \
+  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+sudo dpkg -i cloudflared.deb
+sudo cloudflared service install <你的-TUNNEL-TOKEN>
+```
+
+連接器只會對 Cloudflare 邊緣建立**對外（outbound）**連線，因此你完全不需要開放對內的埠（80/443），也不需要擁有公開的固定 IP。
+
+## 確認連接器狀態
+
+確認 daemon 已以系統服務的形式運行：
+
+```bash
+sudo systemctl status cloudflared
+```
+
+回到儀表板，當連接器註冊成功後，該 Tunnel 的狀態會變為 **Connected／Healthy**。
+
+## 新增 Public Hostname（公開主機名稱）
+
+這一步就是把主機名稱對應到你的本地服務。打開該 Tunnel，切換到 **Public Hostnames** 分頁，然後點選 **Add a public hostname**：
+
+- **Domain／Subdomain：** 選擇你的網域與選用的子網域（例如 `www.example.com`，若要使用根網域則子網域留空）。
+- **Service → Type：** 選 `HTTP`（若本地伺服器本身已提供 TLS，則選 `HTTPS`）。
+- **Service → URL：** 你本地網頁伺服器的位址，例如 `localhost:80`。
+
+儲存後，Cloudflare 會**自動建立 DNS 紀錄**（一筆指向該 Tunnel、已啟用 Proxy 的 `CNAME`），你不需要手動新增。
+
+## 驗證
+
+在瀏覽器開啟 `https://你的網域.com`。此時請求的路徑為 **訪客 → Cloudflare 邊緣 → Tunnel → 你的本地伺服器**，並透過 Cloudflare 的 TLS 憑證對外提供服務。
+
+## （建議）以 Access 保護
+
+如果這個網站並非要完全公開，可以為該主機名稱建立一個 Zero Trust **Access** 應用程式並掛上存取政策（例如只允許特定 Email），讓訪客必須先通過驗證才能連到你的伺服器。
+
+## 為什麼要用 Cloudflare Tunnel？
+
+- **不需開放任何埠** —— 連線是對外單向的，路由器上完全不用轉發 80/443。
+- **不需要公開 IP** —— 在 CGNAT 或浮動 IP 環境下也能運作。
+- **隱藏來源 IP** —— 客戶端只會看到 Cloudflare 的邊緣節點。
+- **免費且自動的 TLS** —— 由 Cloudflare 為你終結 HTTPS。
 
 </div>
