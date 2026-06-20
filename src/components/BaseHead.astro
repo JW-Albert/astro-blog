@@ -2,6 +2,7 @@
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseHead /> component.
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import { htmlLang, localePaths } from '../utils/i18n';
 
 interface Props {
@@ -27,32 +28,85 @@ const ogImage = new URL(image, Astro.site);
 <script is:inline>
 	(function () {
 		var d = document.documentElement;
-		var theme = localStorage.getItem('theme');
-		if (theme !== 'light' && theme !== 'dark') {
-			theme =
-				window.matchMedia &&
-				window.matchMedia('(prefers-color-scheme: dark)').matches
-					? 'dark'
-					: 'light';
+		function applyTheme() {
+			var t = localStorage.getItem('theme');
+			if (t !== 'light' && t !== 'dark') {
+				t =
+					window.matchMedia &&
+					window.matchMedia('(prefers-color-scheme: dark)').matches
+						? 'dark'
+						: 'light';
+			}
+			d.dataset.theme = t;
 		}
-		d.dataset.theme = theme;
+		applyTheme();
+		if ('IntersectionObserver' in window) d.classList.add('reveal-ready');
 
-		// Route the visitor to their preferred locale. An explicit choice
-		// (localStorage 'lang') always wins. Otherwise, on a first visit we
-		// auto-detect the browser language — but only en → zh, never the
-		// reverse, so search engines indexing /zh/ pages are left alone.
-		var saved = localStorage.getItem('lang');
-		var path = location.pathname;
-		var onZh = path === '/zh' || path.indexOf('/zh/') === 0;
-		function go(p) {
-			location.replace(p + location.search + location.hash);
+		if (!window.__siteInit) {
+			window.__siteInit = true;
+
+			// Re-apply client-set <html> state after a view transition (the
+			// incoming server HTML has neither data-theme nor .reveal-ready).
+			document.addEventListener('astro:after-swap', function () {
+				applyTheme();
+				if ('IntersectionObserver' in window) d.classList.add('reveal-ready');
+			});
+
+			// Delegated handlers survive view-transition DOM swaps.
+			document.addEventListener('click', function (e) {
+				var theme = e.target.closest && e.target.closest('#theme-toggle');
+				if (theme) {
+					var n = d.dataset.theme === 'dark' ? 'light' : 'dark';
+					d.dataset.theme = n;
+					localStorage.setItem('theme', n);
+					return;
+				}
+				var ltog = e.target.closest && e.target.closest('#lang-toggle');
+				if (ltog) localStorage.setItem('lang', ltog.getAttribute('data-target') || 'en');
+			});
+
+			// Language routing — full page loads only. An explicit choice wins;
+			// first visit auto-detects browser language (en -> zh only, so
+			// crawlers indexing /zh/ pages are left alone).
+			var saved = localStorage.getItem('lang');
+			var path = location.pathname;
+			var onZh = path === '/zh' || path.indexOf('/zh/') === 0;
+			var go = function (p) {
+				location.replace(p + location.search + location.hash);
+			};
+			if (saved === 'zh-TW' && !onZh) return go('/zh' + (path === '/' ? '/' : path));
+			if (saved === 'en' && onZh) return go(path.replace(/^\/zh(?=\/|$)/, '') || '/');
+			if (!saved && !onZh && (navigator.language || '').toLowerCase().indexOf('zh') === 0)
+				return go('/zh' + (path === '/' ? '/' : path));
 		}
-		if (saved === 'zh-TW' && !onZh) return go('/zh' + (path === '/' ? '/' : path));
-		if (saved === 'en' && onZh) return go(path.replace(/^\/zh(?=\/|$)/, '') || '/');
-		if (!saved && !onZh && (navigator.language || '').toLowerCase().indexOf('zh') === 0)
-			return go('/zh' + (path === '/' ? '/' : path));
 	})();
 </script>
+
+<!-- Scroll-reveal: observe elements with .reveal, re-init after navigations -->
+<script>
+	function setupReveal() {
+		if (!('IntersectionObserver' in window)) return;
+		const els = document.querySelectorAll('.reveal:not(.is-visible)');
+		if (!els.length) return;
+		const io = new IntersectionObserver(
+			(entries, obs) => {
+				entries.forEach((en) => {
+					if (en.isIntersecting) {
+						en.target.classList.add('is-visible');
+						obs.unobserve(en.target);
+					}
+				});
+			},
+			{ rootMargin: '0px 0px -8% 0px', threshold: 0.06 },
+		);
+		els.forEach((el) => io.observe(el));
+	}
+	setupReveal();
+	document.addEventListener('astro:page-load', setupReveal);
+</script>
+
+<!-- SPA-like page transitions -->
+<ClientRouter />
 
 <!-- Global Metadata -->
 <meta charset="utf-8" />

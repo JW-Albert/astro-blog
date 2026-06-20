@@ -13,14 +13,6 @@ const targetLang = Astro.currentLocale === 'zh' ? 'en' : 'zh-TW';
 	<span data-en>中文</span><span data-zh>EN</span>
 </a>
 
-<script>
-	// Remember the explicit choice so the redirect in BaseHead respects it.
-	const el = document.getElementById('lang-toggle');
-	el?.addEventListener('click', () => {
-		localStorage.setItem('lang', el.getAttribute('data-target') || 'en');
-	});
-</script>
-
 <style>
 	a {
 		display: inline-flex;

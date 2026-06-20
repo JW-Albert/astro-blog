@@ -320,6 +320,21 @@ li {
 	color: var(--accent-dark);
 }
 
+/* Scroll-reveal — progressive enhancement. The hidden state only applies once
+   JS has added .reveal-ready (and never under reduced-motion), so content is
+   always visible if JS is off or motion is reduced. */
+@media (prefers-reduced-motion: no-preference) {
+	html.reveal-ready .reveal {
+		opacity: 0;
+		transform: translateY(20px);
+		transition: opacity 0.6s ease, transform 0.6s ease;
+	}
+	html.reveal-ready .reveal.is-visible {
+		opacity: 1;
+		transform: none;
+	}
+}
+
 @media (max-width: 720px) {
 	body {
 		font-size: 18px;
