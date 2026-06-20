@@ -312,6 +312,12 @@ li {
 	background: var(--accent);
 	color: #fff;
 }
+.post-cta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.7em;
+	margin: 1.6em 0;
+}
 .eyebrow {
 	text-transform: uppercase;
 	letter-spacing: 0.12em;
