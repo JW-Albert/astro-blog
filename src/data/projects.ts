@@ -192,3 +192,47 @@ export const projects: Project[] = [
 ];
 
 export const featuredProjects = projects.filter((p) => p.featured);
+
+/** Lower-cased repo name from a GitHub URL, or null for non-GitHub URLs. */
+function repoNameFromUrl(url: string): string | null {
+	const m = url.match(/github\.com\/[^/]+\/([^/]+)/i);
+	return m ? m[1].toLowerCase() : null;
+}
+
+let starsCache: Project[] | null = null;
+
+/**
+ * The project list with live star counts fetched from GitHub at build time
+ * (a single request, memoized per build). Falls back to the hardcoded `stars`
+ * on any failure so the page never breaks.
+ */
+export async function getProjectsWithStars(): Promise<Project[]> {
+	if (starsCache) return starsCache;
+	try {
+		const res = await fetch(
+			`https://api.github.com/users/${GITHUB_USER}/repos?per_page=100&sort=updated`,
+			{
+				headers: {
+					Accept: "application/vnd.github+json",
+					"User-Agent": "prisvalis-site",
+				},
+			},
+		);
+		if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+		const repos = (await res.json()) as Array<{
+			name: string;
+			stargazers_count: number;
+		}>;
+		const stars = new Map(
+			repos.map((r) => [r.name.toLowerCase(), r.stargazers_count]),
+		);
+		starsCache = projects.map((p) => {
+			const name = repoNameFromUrl(p.repo);
+			const live = name ? stars.get(name) : undefined;
+			return live != null ? { ...p, stars: live } : p;
+		});
+		return starsCache;
+	} catch {
+		return projects;
+	}
+}

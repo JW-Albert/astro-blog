@@ -5,7 +5,7 @@ import Footer from '../components/Footer.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
-import { featuredProjects, GITHUB_URL } from '../data/projects';
+import { getProjectsWithStars, GITHUB_URL } from '../data/projects';
 import { localizedHref } from '../utils/i18n';
 import { getCollection } from 'astro:content';
 
@@ -13,6 +13,7 @@ const latestPosts = (await getCollection('blog'))
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 	.slice(0, 3);
 const L = (p: string) => localizedHref(Astro.currentLocale, p);
+const featuredProjects = (await getProjectsWithStars()).filter((p) => p.featured);
 ---
 
 <!doctype html>

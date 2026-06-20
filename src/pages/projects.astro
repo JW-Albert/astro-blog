@@ -4,11 +4,13 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import {
-	projects,
+	getProjectsWithStars,
 	categoryMeta,
 	categoryOrder,
 	GITHUB_URL,
 } from '../data/projects';
+
+const projects = await getProjectsWithStars();
 
 const title = 'Projects — PRISVALIS';
 const description =
