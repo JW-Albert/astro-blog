@@ -62,7 +62,9 @@ const description =
 			}
 			.posts {
 				display: grid;
-				grid-template-columns: repeat(2, 1fr);
+				/* Up to 4 per row: a 5th 220px track can't fit the 1080px container,
+				   and columns fall to 3 → 2 → 1 automatically as the window narrows. */
+				grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
 				gap: 1.8em;
 				list-style: none;
 				margin: 0;
@@ -70,7 +72,6 @@ const description =
 			}
 			@media (max-width: 720px) {
 				.posts {
-					grid-template-columns: 1fr;
 					gap: 1.3em;
 				}
 			}
