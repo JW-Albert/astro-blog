@@ -44,7 +44,7 @@
   </g>
 
   <!-- labels -->
-  <text x="70" y="92" fill="#ffffff" font-size="26" font-weight="700" letter-spacing="3" opacity="0.9">PRISVALIS</text>
+  <text x="70" y="92" fill="#ffffff" font-size="26" font-weight="700" letter-spacing="3" opacity="0.9">ALBERT W.</text>
   <text x="70" y="520" fill="#ff8a4f" font-size="40" font-weight="800" letter-spacing="1">Real-Time Vibration DAQ</text>
   <text x="70" y="556" fill="#ffffff" font-size="20" opacity="0.55">Modbus RTU · Flask · Chart.js · 5-thread pipeline</text>
 </svg>

@@ -12,7 +12,7 @@
 
   <rect width="1200" height="600" fill="url(#cbg)"/>
 
-  <text x="70" y="90" fill="#ffffff" font-size="26" font-weight="700" letter-spacing="3" opacity="0.9">PRISVALIS</text>
+  <text x="70" y="90" fill="#ffffff" font-size="26" font-weight="700" letter-spacing="3" opacity="0.9">ALBERT W.</text>
   <text x="70" y="200" fill="#ff8a4f" font-size="72" font-weight="800" letter-spacing="-1">ClawKit</text>
   <text x="72" y="248" fill="#ffffff" font-size="24" opacity="0.7">A setup wizard for OpenClaw knowledge bases</text>
 
