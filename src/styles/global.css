@@ -29,7 +29,7 @@
 	/* Layout */
 	--maxw: 760px;
 	--maxw-wide: 1080px;
-	--maxw-xwide: 1280px; /* card listings that go up to 4-up */
+	--maxw-xwide: 1440px; /* card listings that go up to 4-up */
 	--radius: 12px;
 	--radius-sm: 8px;
 
