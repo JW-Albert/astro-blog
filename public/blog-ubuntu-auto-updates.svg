@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" font-family="Inter, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1c1813"/>
+      <stop offset="1" stop-color="#2a1c11"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff7a3c"/>
+      <stop offset="1" stop-color="#ed5a1a"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arr" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0 L7 3 L0 6 z" fill="#ff8a4f"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="600" fill="url(#bg)"/>
+
+  <!-- grid -->
+  <g stroke="#ffffff" stroke-opacity="0.05" stroke-width="1">
+    <line x1="0" y1="150" x2="1200" y2="150"/>
+    <line x1="0" y1="300" x2="1200" y2="300"/>
+    <line x1="0" y1="450" x2="1200" y2="450"/>
+    <line x1="300" y1="0" x2="300" y2="600"/>
+    <line x1="600" y1="0" x2="600" y2="600"/>
+    <line x1="900" y1="0" x2="900" y2="600"/>
+  </g>
+
+  <!-- recurring-update arrows around the shield -->
+  <g fill="none" stroke="#ff8a4f" stroke-opacity="0.5" stroke-width="6" stroke-linecap="round">
+    <path d="M 880 118 A 192 192 0 0 1 1060 252" marker-end="url(#arr)"/>
+    <path d="M 880 502 A 192 192 0 0 1 700 368" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- security shield with check -->
+  <g filter="url(#glow)">
+    <path d="M 880 150 L 1000 195 L 1000 320 Q 1000 420 880 480 Q 760 420 760 320 L 760 195 Z"
+          fill="url(#shield)"/>
+    <path d="M 820 305 L 862 350 L 945 250" fill="none" stroke="#1c1813"
+          stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- labels -->
+  <text x="70" y="92" fill="#ffffff" font-size="26" font-weight="700" letter-spacing="3" opacity="0.9">ALBERT W.</text>
+  <text x="70" y="466" fill="#ff8a4f" font-size="44" font-weight="800" letter-spacing="1">Ubuntu Auto Security Updates</text>
+  <text x="70" y="506" fill="#ffffff" font-size="20" opacity="0.55">unattended-upgrades · apt-listchanges · systemd</text>
+</svg>

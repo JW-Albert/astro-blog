@@ -1,0 +1,123 @@
+---
+title: "Automatic Security Updates on Ubuntu"
+titleZh: "設定 Ubuntu 自動安全更新"
+description: "Enable unattended-upgrades on Ubuntu so security patches install themselves — three commands to install, enable, and configure."
+descriptionZh: "在 Ubuntu 上啟用 unattended-upgrades，讓安全性更新自動安裝 —— 用三段指令完成安裝、啟用與設定。"
+pubDate: "Jul 02 2026"
+heroImage: "/blog-ubuntu-auto-updates.svg"
+tags: ["Ubuntu", "Linux", "Security", "System"]
+---
+
+<div data-en>
+
+A server that never applies security patches is a server waiting to be compromised. On Ubuntu, `unattended-upgrades` handles this for you: it checks for updates on a schedule and installs security patches automatically, without you having to log in. Here are the three commands to set it up.
+
+## 1. Install the packages
+
+```bash
+sudo apt install -y unattended-upgrades apt-listchanges
+```
+
+- **`unattended-upgrades`** — the component that downloads and applies updates in the background.
+- **`apt-listchanges`** — shows package changelogs before an upgrade, so update summaries can be mailed to the local root account for review.
+
+## 2. Enable the service
+
+```bash
+sudo systemctl enable --now unattended-upgrades
+```
+
+`enable --now` turns the service on immediately **and** sets it to start on every boot. The actual upgrade runs are triggered by the `apt-daily` and `apt-daily-upgrade` systemd timers.
+
+## 3. Write the configuration
+
+```bash
+sudo tee /etc/apt/apt.conf.d/20auto-upgrades >/dev/null <<'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::AutocleanInterval "7";
+EOF
+```
+
+Each line controls one part of the schedule:
+
+- **`Update-Package-Lists "1"`** — run `apt update` once a day so the package index stays fresh.
+- **`Unattended-Upgrade "1"`** — apply eligible upgrades once a day.
+- **`AutocleanInterval "7"`** — clean out the old downloaded `.deb` files from the apt cache every 7 days.
+
+## Verify it works
+
+Do a dry run to see exactly what would be upgraded, without changing anything:
+
+```bash
+sudo unattended-upgrades --dry-run --debug
+```
+
+And confirm the timers that drive it are active:
+
+```bash
+systemctl list-timers | grep apt
+```
+
+## Good to know
+
+By default, `unattended-upgrades` only installs **security** updates — the allowed sources live in `/etc/apt/apt.conf.d/50unattended-upgrades`. That same file is where you can enable automatic reboots (`Unattended-Upgrade::Automatic-Reboot "true";`) when a kernel update needs one, or set an email address for failure reports.
+
+</div>
+
+<div data-zh>
+
+一台從不套用安全性修補的伺服器，等於在等著被入侵。在 Ubuntu 上，`unattended-upgrades` 會替你處理這件事：它依排程檢查更新，並自動安裝安全性修補，不需要你登入。以下是完成設定的三段指令。
+
+## 1. 安裝套件
+
+```bash
+sudo apt install -y unattended-upgrades apt-listchanges
+```
+
+- **`unattended-upgrades`** —— 在背景下載並套用更新的核心元件。
+- **`apt-listchanges`** —— 在升級前顯示套件的變更紀錄（changelog），可將更新摘要寄到本機 root 帳號以供檢視。
+
+## 2. 啟用服務
+
+```bash
+sudo systemctl enable --now unattended-upgrades
+```
+
+`enable --now` 會**立即**啟動服務，**並且**設定為每次開機自動啟動。實際的升級動作則由 `apt-daily` 與 `apt-daily-upgrade` 這兩個 systemd timer 觸發。
+
+## 3. 寫入設定檔
+
+```bash
+sudo tee /etc/apt/apt.conf.d/20auto-upgrades >/dev/null <<'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::AutocleanInterval "7";
+EOF
+```
+
+每一行各自控制排程的一部分：
+
+- **`Update-Package-Lists "1"`** —— 每天執行一次 `apt update`，讓套件索引保持最新。
+- **`Unattended-Upgrade "1"`** —— 每天套用一次符合條件的升級。
+- **`AutocleanInterval "7"`** —— 每 7 天清除一次 apt 快取中已下載的舊 `.deb` 檔案。
+
+## 驗證是否生效
+
+先做一次 dry run，在不變動任何東西的情況下，看看實際會升級哪些套件：
+
+```bash
+sudo unattended-upgrades --dry-run --debug
+```
+
+再確認驅動它的 timer 是否處於作用中：
+
+```bash
+systemctl list-timers | grep apt
+```
+
+## 補充說明
+
+預設情況下，`unattended-upgrades` 只會安裝**安全性**更新 —— 允許的來源清單位於 `/etc/apt/apt.conf.d/50unattended-upgrades`。同一份檔案裡，你也可以在核心更新需要重開機時啟用自動重開機（`Unattended-Upgrade::Automatic-Reboot "true";`），或設定接收失敗通知的 email 位址。
+
+</div>
