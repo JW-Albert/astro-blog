@@ -203,6 +203,10 @@ code {
 	background-color: rgb(var(--gray-light));
 	border-radius: 4px;
 }
+/* Long inline tokens (paths, URLs) wrap instead of widening the page. */
+:not(pre) > code {
+	overflow-wrap: break-word;
+}
 pre {
 	padding: 1.25em 1.5em;
 	border-radius: var(--radius-sm);
@@ -354,6 +358,29 @@ li {
 	}
 	h2 {
 		font-size: 1.55rem;
+	}
+	h3 {
+		font-size: 1.25rem;
+	}
+	/* A wide table scrolls inside itself rather than dragging the whole page
+	   sideways. Desktop keeps the stretched full-width layout. */
+	table {
+		display: block;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+	th,
+	td {
+		padding: 0.45em 0.6em;
+	}
+	/* Reclaim horizontal room for code and quotes on a narrow column. */
+	pre {
+		padding: 1em;
+		font-size: 0.82rem;
+	}
+	blockquote {
+		padding: 0.7em 1em;
+		font-size: 1em;
 	}
 }
 

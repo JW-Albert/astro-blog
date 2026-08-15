@@ -51,7 +51,17 @@ const { title, titleZh, description, pubDate, updatedDate, heroImage, tags } = A
 			}
 			.title h1 {
 				margin: 0 0 0.3em 0;
-				font-size: 2.4rem;
+				/* Shrinks on a phone so a CJK title isn't 8 characters per line. */
+				font-size: clamp(1.75rem, 6.4vw, 2.4rem);
+			}
+			@media (max-width: 720px) {
+				.hero-image {
+					margin-top: 1em;
+				}
+				.title {
+					margin-bottom: 1em;
+					padding: 1em 0 0.5em;
+				}
 			}
 			.date {
 				margin-bottom: 0.8em;
