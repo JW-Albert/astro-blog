@@ -95,6 +95,17 @@ export const projects: Project[] = [
 		featured: true,
 	},
 	{
+		name: "IoT Device Shadow & Display",
+		repo: "https://github.com/JW-Albert/113-2_FCU_IOT-Shadow-Display-UnixFinal",
+		descEn:
+			"A self-hosted reimplementation of the AWS IoT Device Shadow pattern — desired/reported/delta state in plain JSON files, a Flask API, a token auth server, a browser control room, and an ESP32 gateway that keeps driving the relay when the network drops. Each component lives on its own Git branch.",
+		descZh:
+			"自架版的 AWS IoT Device Shadow：以純 JSON 檔案保存 desired／reported／delta 狀態，搭配 Flask API、Token 認證伺服器、瀏覽器中控台，以及斷線後仍能本地驅動繼電器的 ESP32 閘道。各元件分別存放於獨立 Git 分支。",
+		tags: ["Flask", "ESP32", "PlatformIO", "IoT", "Apache2"],
+		lang: "Python",
+		category: "cloud",
+	},
+	{
 		name: "Home Monitor",
 		repo: "https://github.com/JW-Albert/home-monitor",
 		descEn:
@@ -117,6 +128,18 @@ export const projects: Project[] = [
 	},
 
 	// ---- Full-Stack Web Apps ----
+	{
+		name: "FCU EMS — Emergency Reporting System",
+		repo: "https://github.com/JW-Albert/ems.fcuems.tw",
+		descEn:
+			"A production emergency-dispatch system for the Feng Chia University Health & Safety Rescue Team. A one-question-per-screen report form pushes an incident to LINE and Discord in seconds, while a separate admin site — behind Cloudflare Zero Trust with university O365 sign-in — handles announcements, logs, and case records.",
+		descZh:
+			"為逢甲大學衛保救護隊實際上線的緊急事件通報系統。填報介面採一頁一問設計，數秒內即可將案件廣播至 LINE 與 Discord；管理後台則獨立部署，以 Cloudflare Zero Trust 搭配學校 O365 帳號認證，負責公告發布、日誌與案件紀錄管理。",
+		tags: ["Flask", "LINE Bot", "Discord Webhook", "Cloudflare Zero Trust"],
+		lang: "Python",
+		category: "web",
+		featured: true,
+	},
 	{
 		name: "Jiu-Pluck — Campus Meetup Platform",
 		repo: "https://github.com/JW-Albert/Jiu-Pluck",

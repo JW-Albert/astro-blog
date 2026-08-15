@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" font-family="Inter, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="shbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#12171b"/>
+      <stop offset="1" stop-color="#1f1a12"/>
+    </linearGradient>
+    <filter id="shglow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="600" fill="url(#shbg)"/>
+
+  <!-- git trunk -->
+  <line x1="120" y1="300" x2="1130" y2="300" stroke="#ffffff" stroke-opacity="0.16" stroke-width="3"/>
+  <text x="120" y="286" fill="#ffffff" font-size="17" opacity="0.35" letter-spacing="2">main</text>
+
+  <!-- branch curves: 2 up, 3 down -->
+  <g fill="none" stroke-width="3">
+    <path d="M270 300 C 330 300, 340 190, 400 190" stroke="#ff7a3c" stroke-opacity="0.75"/>
+    <path d="M470 300 C 530 300, 540 190, 600 190" stroke="#ff7a3c" stroke-opacity="0.75"/>
+    <path d="M270 300 C 330 300, 340 410, 400 410" stroke="#6fb7c9" stroke-opacity="0.7"/>
+    <path d="M470 300 C 530 300, 540 410, 600 410" stroke="#6fb7c9" stroke-opacity="0.7"/>
+    <path d="M670 300 C 730 300, 740 410, 800 410" stroke="#6fb7c9" stroke-opacity="0.7"/>
+  </g>
+
+  <!-- trunk commit nodes -->
+  <g fill="#12171b" stroke="#ffffff" stroke-opacity="0.4" stroke-width="3">
+    <circle cx="270" cy="300" r="8"/><circle cx="470" cy="300" r="8"/><circle cx="670" cy="300" r="8"/>
+  </g>
+
+  <!-- branch tips + labels -->
+  <g font-size="19" font-weight="700">
+    <circle cx="400" cy="190" r="9" fill="#ff7a3c" filter="url(#shglow)"/>
+    <text x="420" y="196" fill="#ffd7c2">Shadow</text>
+
+    <circle cx="600" cy="190" r="9" fill="#ff7a3c" filter="url(#shglow)"/>
+    <text x="620" y="196" fill="#ffd7c2">auth</text>
+
+    <circle cx="400" cy="410" r="9" fill="#6fb7c9"/>
+    <text x="420" y="416" fill="#bfe2ec">frontend</text>
+
+    <circle cx="600" cy="410" r="9" fill="#6fb7c9"/>
+    <text x="620" y="416" fill="#bfe2ec">simulator</text>
+
+    <circle cx="800" cy="410" r="9" fill="#6fb7c9"/>
+    <text x="820" y="416" fill="#bfe2ec">ESP32 gateway</text>
+  </g>
+
+  <!-- desired / reported / delta chip -->
+  <g>
+    <rect x="880" y="150" width="250" height="112" rx="14" fill="#ffffff" fill-opacity="0.06" stroke="#ff7a3c" stroke-opacity="0.4"/>
+    <text x="902" y="184" fill="#ff8a4f" font-size="18" font-weight="700">desired</text>
+    <text x="1108" y="184" fill="#ffffff" font-size="18" opacity="0.7" text-anchor="end">1</text>
+    <text x="902" y="216" fill="#6fb7c9" font-size="18" font-weight="700">reported</text>
+    <text x="1108" y="216" fill="#ffffff" font-size="18" opacity="0.7" text-anchor="end">0</text>
+    <line x1="902" y1="230" x2="1108" y2="230" stroke="#ffffff" stroke-opacity="0.15"/>
+    <text x="902" y="252" fill="#ffffff" font-size="18" font-weight="700" opacity="0.85">delta</text>
+    <text x="1108" y="252" fill="#ff8a4f" font-size="18" font-weight="700" text-anchor="end">1</text>
+  </g>
+
+  <!-- labels -->
+  <text x="70" y="92" fill="#ffffff" font-size="26" font-weight="700" letter-spacing="3" opacity="0.9">ALBERT W.</text>
+  <text x="70" y="520" fill="#ff8a4f" font-size="40" font-weight="800" letter-spacing="1">One Repo, Five Machines</text>
+  <text x="70" y="556" fill="#ffffff" font-size="20" opacity="0.55">Device Shadow · Flask · ESP32 · branch-per-component</text>
+</svg>

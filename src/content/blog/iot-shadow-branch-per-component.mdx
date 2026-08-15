@@ -1,0 +1,265 @@
+---
+title: "One Repo, Five Machines: Branch-per-Component in an IoT Build"
+titleZh: "一個儲存庫、五台機器：以分支切分 IoT 系統元件"
+description: "A self-hosted AWS IoT Device Shadow clone where every component — Flask shadow, auth server, control room, ESP32 gateway — lives on its own Git branch, and a physical switch can always overrule the cloud."
+descriptionZh: "自架版的 AWS IoT Device Shadow：Flask Shadow、認證伺服器、中控台、ESP32 閘道各自佔據一條 Git 分支，而實體開關永遠可以否決雲端。"
+pubDate: "Aug 16 2026"
+heroImage: "/blog-iot-shadow-branches.svg"
+tags: ["IoT", "ESP32", "Flask", "Architecture", "Linux"]
+---
+
+<div data-en>
+
+Clone **[113-2_FCU_IOT-Shadow-Display-UnixFinal](https://github.com/JW-Albert/113-2_FCU_IOT-Shadow-Display-UnixFinal)** and you'll find almost nothing on `main` — a readme, a slide deck, a demo video, and a boot script. The actual system is spread across five other branches, and that isn't neglect. It's the layout.
+
+This was my final project for a Unix course: rebuild the **AWS IoT Device Shadow** pattern with no cloud services, no database, and no message broker. Just Flask, JSON files on disk, an Apache reverse proxy, and an ESP32 driving a relay.
+
+## Why the components live on branches
+
+The five components don't run in the same place:
+
+| Branch | Runs on | What it is |
+|--------|---------|------------|
+| `Shadow` | Debian 12 server, port 5000 | Flask shadow API + per-device JSON state |
+| `auth` | Same server, port 6000 | Flask token/session auth + server time |
+| `frontend` | Apache `/var/www/html` | Control-room HTML/JS + vhost configs |
+| `LocalGateway_ESP-32S` | ESP32-S board | PlatformIO firmware, C++ |
+| `local_gateway_simulater` | Any dev machine | 40-line Python stand-in for the board |
+
+A conventional monorepo with five subdirectories would mean every target gets a full copy of the tree and then ignores four fifths of it. The ESP32 toolchain would sit next to the Apache configs; the web root would contain firmware.
+
+Branch-per-component makes deployment a single command per machine:
+
+```bash
+git clone -b Shadow --single-branch https://github.com/JW-Albert/113-2_FCU_IOT-Shadow-Display-UnixFinal.git
+```
+
+What lands on the target is exactly what belongs there, and nothing else. Each branch carries its own readme, its own dependency list, and its own history — the ESP32 log is firmware commits only, unpolluted by frontend CSS tweaks.
+
+**The honest trade-off:** this is a deployment convenience bought with a real cost. There is no shared code, because there is no shared tree — the API contract between the shadow server and the gateway exists only in prose in two readmes. A change to the JSON shape has to be applied to each branch by hand, and no diff, no test run, and no CI job will ever tell you that you missed one. For a five-component project that ships once, that's an acceptable trade. For anything that keeps evolving, subdirectories and a build step would win.
+
+## The shadow itself
+
+Each device's state is a JSON file holding three things:
+
+```json
+{
+  "state": {
+    "desired":  { "status": 1, "permission": 1 },
+    "reported": { "status": 0, "permission": 1 }
+  },
+  "delta": { "status": 1 }
+}
+```
+
+`desired` is what the control room wants. `reported` is what the hardware says it's actually doing. `delta` is the difference, recomputed on every write. When the delta empties, the physical world matches the intent.
+
+This decoupling is the whole reason the pattern exists: the control room never talks to the device. It writes an intention and walks away. The device, whenever it's awake and connected, discovers what changed and closes the gap. Neither side needs the other to be online at the same moment.
+
+I wrote up the server's Flask implementation and its Apache reverse-proxy setup in detail in [Shadow System Explanation](../shadow-system-explanation/), so I won't repeat it here.
+
+## Liveness without a heartbeat
+
+There's no heartbeat protocol in this system, no MQTT keepalive, no "last seen" table. A device is considered **offline when the timestamp in its reported state drifts more than 10 seconds from the server's clock.**
+
+That's why the `auth` branch exposes a `/servertime` endpoint alongside login:
+
+```json
+{ "unixtime": 1747036800 }
+```
+
+Both the browser and the ESP32 ask for it. The gateway reports its own clock as part of its normal state update; the control room polls state every 10 seconds and compares. If the gap is too wide, the device shows as offline and its controls grey out.
+
+The appeal is that liveness needs no new channel. The state sync already runs continuously, so a timestamp riding along inside it gets you presence detection for free — and it fails in the right direction. A gateway that's connected but wedged, still reporting a stale clock, shows as offline. A true heartbeat only proves the network is up; this proves the state loop is still turning.
+
+## Three-way arbitration for one relay
+
+The interesting logic isn't in the shadow server — it's the negotiation over who's allowed to flip the relay. Three inputs decide it, and the ESP32 wires them to physical pins:
+
+| GPIO | Role |
+|------|------|
+| 36 | Cloud/local mode select (ADC, thresholded at 2000) |
+| 39 | Local permission (`INPUT_PULLUP`) |
+| 34 | Local control (`INPUT_PULLUP`) |
+| 4 | Relay output |
+
+**Mode select (36)** is a physical switch, read as an analog value and debounced over 50 ms. Flip it to local and the firmware calls `WiFi.disconnect(true)` — it doesn't just ignore the cloud, it leaves the network entirely.
+
+**Local permission (39)** gates whether the local control pin does anything at all. The control room can set `desired.permission = 0` to lock the panel out and keep control central, but only while the device is in cloud mode.
+
+**Local control (34)** is the switch a person standing at the device actually presses.
+
+In cloud mode the loop polls `/shadow/get?type=delta` every 1.5 seconds, applies any status change to the relay, then still checks pin 39 — so someone at the hardware can seize control mid-poll and have that reported back up. In local mode the firmware skips the network entirely and writes pin 34 straight to the relay.
+
+This is the design principle that mattered most: **the physical switch always wins.** Not as a fallback for when the network fails, but as a rule. A gateway that can be bricked by a bad `desired` state, or that goes dead when Wi-Fi does, is not something you'd put next to real equipment. The cloud gets to express intent; the person standing in the room gets to overrule it.
+
+## The simulator branch
+
+`local_gateway_simulater` is the smallest branch and the one that saved the most time — about forty lines of Python that poll the delta and report it straight back:
+
+```python
+SHADOW_API_BASE = "https://unix.jw-albert.dev/api/shadow"
+AUTH_COOKIE = {"token": "device-token-789"}
+
+def main_loop():
+    while True:
+        delta = get_delta()
+        if delta:
+            time.sleep(1)          # pretend the hardware took a moment
+            report_state(delta)
+        time.sleep(2)
+```
+
+It's a device that instantly obeys. Which means the entire server-and-browser half of the system can be built and debugged with no board plugged in, no firmware flash cycle, and no Wi-Fi. When something then breaks with the real ESP32 attached, you already know which half to suspect.
+
+The deliberate `sleep(1)` before reporting is the point of the whole thing — it forces the delta to actually exist for a beat, so you can watch the gap open and close instead of seeing a value that was never out of sync.
+
+## Finding a headless server
+
+`main` keeps one genuinely useful scrap: `Tell_Me_after_Boot/`, a systemd unit that emails the machine's hostname and IP on every boot.
+
+```bash
+IP_ADDRESS=$(hostname -I | awk '{print $1}')
+```
+
+The server was a headless box on DHCP with no monitor. Rather than hunting it with `nmap` after every power cycle, it announces itself. Crude, and it has done more for my quality of life than most of the clever parts of this project.
+
+## Takeaways
+
+- **Branch-per-component is a deployment tool, not an architecture.** It's excellent at getting the right files onto the right machine, and it actively works against shared contracts. Know which problem you have.
+- **Desired / reported / delta decouples intent from execution.** Neither side has to be online when the other acts.
+- **Derive liveness from data you're already sending.** A timestamp inside the state sync beat adding a heartbeat channel.
+- **Let the hardware overrule the cloud, by design.** Local override shouldn't be an error path; it should be a rule the system is built around.
+- **Write the trivial simulator.** Forty lines removed the hardware from the critical path of every server-side change.
+
+Frontend interface design by Andy Chen (陳稚翔). The project is educational — the tokens in the repo are placeholders, and none of it is hardened for production use.
+
+</div>
+
+<div data-zh>
+
+把 **[113-2_FCU_IOT-Shadow-Display-UnixFinal](https://github.com/JW-Albert/113-2_FCU_IOT-Shadow-Display-UnixFinal)** clone 下來，你會發現 `main` 分支上幾乎什麼都沒有——一份 readme、一份簡報、一段展示影片，和一個開機腳本。真正的系統散落在另外五條分支上。這不是疏於整理，這就是它的結構。
+
+這是我的 Unix 課程期末專案：在沒有雲端服務、沒有資料庫、也沒有訊息中介的前提下，重建 **AWS IoT Device Shadow** 的運作模式。用到的只有 Flask、磁碟上的 JSON 檔案、Apache 反向代理，以及一片驅動繼電器的 ESP32。
+
+## 為什麼元件要放在分支上
+
+這五個元件根本不在同一個地方執行：
+
+| 分支 | 執行位置 | 內容 |
+|------|----------|------|
+| `Shadow` | Debian 12 伺服器，埠 5000 | Flask Shadow API 與各裝置 JSON 狀態 |
+| `auth` | 同一台伺服器，埠 6000 | Flask Token／Session 認證與伺服器時間 |
+| `frontend` | Apache `/var/www/html` | 中控台 HTML／JS 與虛擬主機設定 |
+| `LocalGateway_ESP-32S` | ESP32-S 開發板 | PlatformIO 韌體，C++ |
+| `local_gateway_simulater` | 任一台開發機 | 40 行 Python 寫的開發板替身 |
+
+若採用常見的單一儲存庫加五個子目錄，代表每個部署目標都會拿到整棵樹，然後忽略其中五分之四。ESP32 的工具鏈會和 Apache 設定並排放著，網頁根目錄裡則躺著韌體。
+
+以分支切分元件，讓每台機器的部署變成一道指令：
+
+```bash
+git clone -b Shadow --single-branch https://github.com/JW-Albert/113-2_FCU_IOT-Shadow-Display-UnixFinal.git
+```
+
+落到目標機器上的，剛好就是該在那裡的東西，多一分都沒有。每條分支帶著自己的 readme、自己的相依清單，以及自己的歷史——ESP32 的提交紀錄只有韌體，不會被前端的 CSS 微調洗版。
+
+**必須誠實面對的代價：** 這是用真實成本換來的部署便利。因為沒有共用的樹，所以沒有共用的程式碼——Shadow 伺服器與閘道之間的 API 約定，只存在於兩份 readme 的文字敘述裡。JSON 結構一改動，就得手動套用到每條分支，而且沒有任何 diff、測試或 CI 會提醒你漏了哪一條。對一個只交付一次的五元件專案來說，這筆交換划算；但對於會持續演進的專案，子目錄加上建置流程才是正解。
+
+## Shadow 本身
+
+每台裝置的狀態就是一個 JSON 檔案，裡面存三件事：
+
+```json
+{
+  "state": {
+    "desired":  { "status": 1, "permission": 1 },
+    "reported": { "status": 0, "permission": 1 }
+  },
+  "delta": { "status": 1 }
+}
+```
+
+`desired` 是中控台希望的狀態，`reported` 是硬體回報自己實際的狀態，`delta` 則是兩者的差異，每次寫入都會重新計算。當 delta 變空，代表物理世界已經與意圖一致。
+
+這種解耦正是這個模式存在的理由：中控台從不直接與裝置對話，它只寫下一個意圖然後就離開。裝置則在自己醒著且連得上線的任何時刻，去發現有什麼改變並把落差補上。兩邊不需要同時在線。
+
+伺服器端的 Flask 實作與 Apache 反向代理設定，我已在 [Shadow 系統說明](../shadow-system-explanation/) 中詳細寫過，這裡不再重複。
+
+## 不靠心跳的存活偵測
+
+這套系統裡沒有心跳協定、沒有 MQTT keepalive，也沒有「最後上線時間」的資料表。判斷方式是：**當裝置回報狀態中的時間戳與伺服器時鐘相差超過 10 秒，即視為離線。**
+
+這正是 `auth` 分支除了登入之外，還要提供 `/servertime` 端點的原因：
+
+```json
+{ "unixtime": 1747036800 }
+```
+
+瀏覽器與 ESP32 都會來索取。閘道在例行狀態更新中一併回報自己的時鐘；中控台每 10 秒輪詢一次狀態並比對。若差距過大，裝置就顯示為離線，控制元件也隨之停用。
+
+這個做法的好處是：存活偵測不需要新增任何通道。狀態同步本來就持續在跑，讓時間戳搭個順風車，就免費換來了在線偵測——而且它的失效方向是對的。一台網路通、但程式卡死而持續回報過期時鐘的閘道，會顯示為離線。真正的心跳只能證明網路還活著；這個做法證明的是狀態迴圈仍在轉動。
+
+## 一顆繼電器的三方仲裁
+
+真正有意思的邏輯不在 Shadow 伺服器，而在於「誰有權切換繼電器」的協商。決定權由三個輸入共同決定，而 ESP32 把它們都接到實體腳位上：
+
+| GPIO | 角色 |
+|------|------|
+| 36 | 雲端／本地模式切換（ADC，門檻值 2000） |
+| 39 | 本地權限（`INPUT_PULLUP`） |
+| 34 | 本地控制（`INPUT_PULLUP`） |
+| 4 | 繼電器輸出 |
+
+**模式切換（36）** 是一顆實體開關，以類比值讀取並經過 50 毫秒消抖。切到本地模式時，韌體會呼叫 `WiFi.disconnect(true)`——它不只是忽略雲端，而是直接離開網路。
+
+**本地權限（39）** 決定本地控制腳位是否有作用。中控台可以將 `desired.permission` 設為 0 來鎖住現場面板、讓控制權集中，但這只在裝置處於雲端模式時有效。
+
+**本地控制（34）** 才是站在裝置旁邊的人實際按下的那顆開關。
+
+在雲端模式下，主迴圈每 1.5 秒輪詢一次 `/shadow/get?type=delta`，將狀態變更套用到繼電器，之後仍會檢查腳位 39——因此現場的人可以在輪詢空檔奪回控制權，而這個變化也會被回報上去。在本地模式下，韌體完全跳過網路，直接把腳位 34 的值寫進繼電器。
+
+這是整個設計中最重要的原則：**實體開關永遠優先。** 它不是網路故障時的備援，而是一條規則。一台會因為錯誤的 `desired` 狀態而失控、或在 Wi-Fi 斷線時直接死掉的閘道，是不該擺在真實設備旁邊的。雲端負責表達意圖，而站在現場的人有權否決它。
+
+## 模擬器分支
+
+`local_gateway_simulater` 是最小的一條分支，卻也是省下最多時間的一條——大約四十行 Python，輪詢 delta 之後原封不動回報：
+
+```python
+SHADOW_API_BASE = "https://unix.jw-albert.dev/api/shadow"
+AUTH_COOKIE = {"token": "device-token-789"}
+
+def main_loop():
+    while True:
+        delta = get_delta()
+        if delta:
+            time.sleep(1)          # 假裝硬體花了一點時間
+            report_state(delta)
+        time.sleep(2)
+```
+
+它是一台永遠立刻服從的裝置。這代表整個「伺服器 + 瀏覽器」的部分，都能在沒有插上開發板、不必燒錄韌體、也不需要 Wi-Fi 的情況下開發與除錯。等到接上真正的 ESP32 才出問題時，你已經知道該懷疑哪一半。
+
+回報前那個刻意加上的 `sleep(1)` 才是重點——它強迫 delta 真的存在一小段時間，讓你能親眼看見落差被打開又被關上，而不是看到一個從未失同步過的數值。
+
+## 找到一台無頭伺服器
+
+`main` 分支上保留了一個確實有用的小東西：`Tell_Me_after_Boot/`，一個 systemd 單元，會在每次開機時把主機名稱與 IP 寄到信箱。
+
+```bash
+IP_ADDRESS=$(hostname -I | awk '{print $1}')
+```
+
+那台伺服器是使用 DHCP、沒有接螢幕的無頭主機。與其每次重新開機後都用 `nmap` 到處找它，不如讓它自己報到。手法很粗糙，但對我生活品質的貢獻，勝過這個專案裡大多數聰明的部分。
+
+## 心得
+
+- **以分支切分元件是部署工具，不是架構。** 它非常擅長把正確的檔案送到正確的機器上，同時也在主動破壞共用契約。要清楚自己面對的是哪個問題。
+- **desired／reported／delta 讓意圖與執行解耦。** 任一方動作時，另一方都不必在線。
+- **從既有資料推導存活狀態。** 在狀態同步中夾帶一個時間戳，勝過另外新增一條心跳通道。
+- **讓硬體有權否決雲端，而且是刻意如此。** 本地覆寫不該是錯誤處理路徑，而該是整個系統圍繞著建立的規則。
+- **寫那個微不足道的模擬器。** 四十行程式碼，就把硬體移出了每一次伺服器端修改的關鍵路徑。
+
+前端介面設計由陳稚翔負責。本專案為教學用途——儲存庫中的 Token 皆為佔位值，整體並未針對正式環境進行安全強化。
+
+</div>

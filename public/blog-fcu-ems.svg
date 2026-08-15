@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" font-family="Inter, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="emsbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1d1410"/>
+      <stop offset="1" stop-color="#33150f"/>
+    </linearGradient>
+    <filter id="emsglow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="emsarrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0 L7 3 L0 6 z" fill="#ff7a3c"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="600" fill="url(#emsbg)"/>
+
+  <!-- alert pulse rings -->
+  <g fill="none" stroke="#ed5a1a" stroke-width="2">
+    <circle cx="270" cy="300" r="70" stroke-opacity="0.45"/>
+    <circle cx="270" cy="300" r="108" stroke-opacity="0.26"/>
+    <circle cx="270" cy="300" r="146" stroke-opacity="0.12"/>
+  </g>
+
+  <!-- alert core -->
+  <g filter="url(#emsglow)">
+    <circle cx="270" cy="300" r="40" fill="#ed5a1a"/>
+    <rect x="264" y="278" width="12" height="28" rx="6" fill="#1d1410"/>
+    <circle cx="270" cy="318" r="6" fill="#1d1410"/>
+  </g>
+
+  <!-- fan-out paths -->
+  <g fill="none" stroke="#ff7a3c" stroke-opacity="0.55" stroke-width="3" marker-end="url(#emsarrow)">
+    <path d="M330 268 C 470 220, 560 205, 690 205"/>
+    <path d="M330 332 C 470 380, 560 395, 690 395"/>
+  </g>
+
+  <!-- destination cards -->
+  <g>
+    <rect x="706" y="172" width="216" height="66" rx="14" fill="#ffffff" fill-opacity="0.07" stroke="#ff7a3c" stroke-opacity="0.55"/>
+    <text x="814" y="213" fill="#ffd7c2" font-size="24" font-weight="700" text-anchor="middle">LINE Group</text>
+
+    <rect x="706" y="362" width="216" height="66" rx="14" fill="#ffffff" fill-opacity="0.07" stroke="#ff7a3c" stroke-opacity="0.55"/>
+    <text x="814" y="403" fill="#ffd7c2" font-size="24" font-weight="700" text-anchor="middle">Discord</text>
+  </g>
+
+  <!-- step dots -->
+  <g fill="#6fb7c9" fill-opacity="0.75">
+    <circle cx="962" cy="300" r="5"/><circle cx="990" cy="300" r="5"/><circle cx="1018" cy="300" r="5"/>
+  </g>
+  <text x="1046" y="307" fill="#6fb7c9" font-size="19" opacity="0.8">seconds</text>
+
+  <!-- labels -->
+  <text x="70" y="92" fill="#ffffff" font-size="26" font-weight="700" letter-spacing="3" opacity="0.9">ALBERT W.</text>
+  <text x="70" y="520" fill="#ff8a4f" font-size="40" font-weight="800" letter-spacing="1">Campus Emergency Reporting</text>
+  <text x="70" y="556" fill="#ffffff" font-size="20" opacity="0.55">Flask · LINE Bot · Discord Webhook · Cloudflare Zero Trust</text>
+</svg>
